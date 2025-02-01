@@ -1,13 +1,10 @@
-// main.cpp
 #include <iostream>
-#include <fstream>
 #include <map>
 #include <string>
 #include <vector>
 
-std::map<std::string, int> tokenCount; // Definindo a variável tokenCount
+std::map<std::string, int> tokenCount;
 
-// Ordem dos tokens que você deseja
 std::vector<std::string> tokenOrder = {
     "KEYWORD", "IDENTIFIER", "VARIABLES", "NUMBER", "ARITHMETIC_OPERATOR", 
     "LOGICAL_OPERATOR", "QUANTIFIER_OPERATOR", "CONDITIONAL_OPERATOR", 
@@ -18,14 +15,13 @@ std::vector<std::string> tokenOrder = {
 extern int yylex();
 extern FILE *yyin;
 
-// Função para processar o arquivo
 void processarArquivo(const char *filename) {
     yyin = fopen(filename, "r");
     if (!yyin) {
         std::cerr << "Erro ao abrir o arquivo: " << filename << std::endl;
         exit(1);
     }
-    while (yylex()) {} // Continua processando os tokens
+    while (yylex()) {}
     fclose(yyin);
 }
 

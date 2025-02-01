@@ -27,5 +27,8 @@ test1:
 test2:
 	./pddl_lexical PDDL-Exemplo/dom2.pddl PDDL-Exemplo/prob2.pddl
 
+test3:
+	./pddl_lexical PDDL-Exemplo/dom3.pddl PDDL-Exemplo/prob3.pddl
+
 # Adicionando dependências
 .PHONY: all clean

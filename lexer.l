@@ -1,7 +1,4 @@
 %{
-
-#include <cstdio>
-#include <iostream>
 #include <map>
 #include <string>
 
@@ -15,6 +12,7 @@ IDENTIFIER      [a-zA-Z_][a-zA-Z0-9_-]*[a-zA-Z0-9]?
 VARIABLE        \?{IDENTIFIER}
 NUMBER          [0-9]+(\.[0-9]+)?
 COMMENT         ";"[^\n]*\n
+WHITESPACE		[ \s\t\n]
 
 %%
 
@@ -31,7 +29,7 @@ COMMENT         ";"[^\n]*\n
 {VARIABLE}                                             { tokenCount["VARIABLES"]++; }
 {IDENTIFIER}                                           { tokenCount["IDENTIFIER"]++; }
 {NUMBER}                                               { tokenCount["NUMBER"]++; }
-
+{WHITESPACE}                                           { /* Dá match com espaços em branco */ }
 .                                                      { tokenCount["UNKNOWN"]++; }
 
 %%
