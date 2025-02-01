@@ -1,6 +1,27 @@
-#line 2 "lexer.lex.cpp"
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+#include <stdio.h>
+#include <string.h>
+#include <errno.h>
+#include <stdlib.h>
 
-#line 4 "lexer.lex.cpp"
+std::map<std::string, int> tokenCount;
+
+std::vector<std::string> tokenOrder = {
+    "KEYWORD", "IDENTIFIER", "VARIABLES", "NUMBER", "ARITHMETIC_OPERATOR", 
+    "LOGICAL_OPERATOR", "QUANTIFIER_OPERATOR", "CONDITIONAL_OPERATOR", 
+    "MODIFIER_OPERATOR", "TEMPORAL_OPERATOR", "OPTIMIZATION_OPERATOR", 
+    "DELIMITER", "COMMENTS", "UNKNOWN"
+};
+
+extern int yylex();
+extern FILE *yyin;
+
+#line 2 "lexer.l.cpp"
+
+#line 4 "lexer.l.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -17,10 +38,6 @@
 /* First, we deal with  platform-specific or compiler-specific issues. */
 
 /* begin standard C headers. */
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <stdlib.h>
 
 /* end standard C headers. */
 
@@ -598,8 +615,8 @@ char *yytext;
 
 extern std::map<std::string, int> tokenCount;
 extern int yylex();
-#line 602 "lexer.lex.cpp"
-#line 603 "lexer.lex.cpp"
+#line 602 "lexer.l.cpp"
+#line 603 "lexer.l.cpp"
 
 #define INITIAL 0
 
@@ -819,7 +836,7 @@ YY_DECL
 #line 17 "lexer.l"
 
 
-#line 823 "lexer.lex.cpp"
+#line 823 "lexer.l.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -958,7 +975,7 @@ YY_RULE_SETUP
 #line 35 "lexer.l"
 ECHO;
 	YY_BREAK
-#line 962 "lexer.lex.cpp"
+#line 962 "lexer.l.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1965,3 +1982,34 @@ void yyfree (void * ptr )
 
 #line 35 "lexer.l"
 
+
+
+void processarArquivo(const char *filename) {
+    yyin = fopen(filename, "r");
+    if (!yyin) {
+        std::cerr << "Erro ao abrir o arquivo: " << filename << std::endl;
+        exit(1);
+    }
+    while (yylex()) {}
+    fclose(yyin);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
+        std::cerr << "Uso incorreto! Exemplo de uso: " << argv[0] 
+                  << " <dominio.pddl> <problema.pddl>\n";
+        return 1;
+    }
+
+    // Processa os arquivos passados
+    processarArquivo(argv[1]);
+    processarArquivo(argv[2]);
+
+    std::cout.flush();
+    for (const auto &token : tokenOrder) {
+        int count = tokenCount[token]; 
+        std::cout << token << ": " << count << "\n";
+    }
+
+    return 0;
+}
