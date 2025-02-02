@@ -32,7 +32,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Processa os arquivos passados
     processarArquivo(argv[1]);
     processarArquivo(argv[2]);
 

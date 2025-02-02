@@ -1982,8 +1982,6 @@ void yyfree (void * ptr )
 
 #line 35 "lexer.l"
 
-
-
 void processarArquivo(const char *filename) {
     yyin = fopen(filename, "r");
     if (!yyin) {
@@ -2001,7 +1999,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Processa os arquivos passados
     processarArquivo(argv[1]);
     processarArquivo(argv[2]);
 
