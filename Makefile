@@ -11,14 +11,6 @@ LFLAGS = -lfl
 all:
 	flex -o lexerWithMain.l.cpp lexerWithMain.l
 	g++ -o pddl_lexical lexerWithMain.l.cpp -lfl
-#all: $(TARGET)
-#
-#$(TARGET): $(LEX_OUTPUT) $(SOURCE)
-#	$(CXX) -o $(TARGET) $(SOURCE) $(LFLAGS)
-#
-## Geração do arquivo lexer.l.cpp
-#$(LEX_OUTPUT): $(LEX_FILE)
-#	$(LEX) -o $(LEX_OUTPUT) $(LEX_FILE)
 
 # Limpeza de arquivos temporários
 clean:
@@ -33,11 +25,8 @@ test2:
 test3:
 	./pddl_lexical PDDL-Exemplo/dom3.pddl PDDL-Exemplo/prob3.pddl
 
-unido:
-	g++ -o pddl_lexical mainLexer.cpp -lfl
-
-flex:
-	flex -o lexer.l.cpp lexer.l
+testpy:
+	./pddl_lexical PDDL-Exemplo/teste.py
 
 # Adicionando dependências
 .PHONY: all clean
