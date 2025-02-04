@@ -26,16 +26,15 @@ void processarArquivo(const char *filename) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
+    if (argc == 1) {
         std::cerr << "Uso incorreto! Exemplo de uso: " << argv[0] 
-                  << " <dominio.pddl> <problema.pddl>\n";
+                  << " <dominio> <problema>\n";
         return 1;
     }
 
     processarArquivo(argv[1]);
     processarArquivo(argv[2]);
 
-    std::cout.flush();
     for (const auto &token : tokenOrder) {
         int count = tokenCount[token]; 
         std::cout << token << ": " << count << "\n";
