@@ -12,7 +12,7 @@ all:
 	flex -o lexerWithMain.l.cpp lexerWithMain.l
 	g++ -o pddl_lexical lexerWithMain.l.cpp -lfl
 
-# Limpeza de arquivos temporários
+# Limpeza de arquivos
 clean:
 	rm -f $(TARGET) $(LEX_OUTPUT) lexerWithMain.l.cpp
 
@@ -28,5 +28,4 @@ test3:
 testpy:
 	./pddl_lexical PDDL-Exemplo/teste.py
 
-# Adicionando dependências
 .PHONY: all clean
