@@ -1,0 +1,323 @@
+%{
+
+#include <iostream>
+#include <string>
+#include <cstdlib>
+using namespace std;
+
+extern int yylex();
+void yyerror(const char *s);
+
+%}
+
+%union {
+    char* str;
+    double number;
+}
+
+%token <str> IDENTIFIER
+%token <str> VARIABLE
+%token <number> NUMBER
+
+%token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS CONSTRAINTS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME LENGTH SERIAL PARALLEL
+
+%token ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE
+
+%token MINIMIZE MAXIMIZE
+
+%token AND OR NOT IMPLY
+
+%token FORALL EXISTS
+
+%token WHEN
+
+%token AT OVER START END
+
+%token LT GT EQ LEQ GEQ
+
+%start file
+
+%%
+
+/* ============================================================
+   REGRA INICIAL: UM ARQUIVO PDDL É UM DOMÍNIO OU UM PROBLEMA
+   ============================================================ */
+file:
+        domain
+    |   problem
+    ;
+
+domain:
+        '(' DEFINE declDom bodyDom ')'
+    ;
+
+declDom:
+        '(' DOMAIN IDENTIFIER ')'
+    ;
+
+bodyDom:
+        domainBodyElementsPlus
+    ;
+
+domainBodyElementsPlus:
+        domainBodyElements
+    ;
+
+domainBodyElements:
+        domainBodyElement
+    |   domainBodyElements domainBodyElement
+    ;
+
+domainBodyElement:
+        reqDef
+    |   typeDef
+    |   constDef
+    |   predDef
+    |   funcDef
+    |   dervDef
+    |   actDef
+    |   durActDef
+    ;
+
+reqDef:
+        '(' ':' REQUIREMENTS reqKeyList ')'
+    ;
+
+reqKeyList:
+        reqKey
+    |   reqKeyList reqKey
+    ;
+
+reqKey:
+        ':' IDENTIFIER
+    ;
+
+typeDef:
+        '(' ':' TYPES typeListNames ')'
+    ;
+
+typeListNames:
+        typeName
+    |   typeListNames typeName
+    ;
+
+typeName:
+        IDENTIFIER
+    ;
+
+constDef:
+        '(' CONSTANTS typeListNames ')'
+    ;
+
+predDef:
+        '(' PREDICATES varSymbolList ')'
+    ;
+
+varSymbolList:
+        symbol
+    |   varSymbolList symbol
+    ;
+
+symbol:
+        '(' IDENTIFIER varListPlus typeSpecifier ')'
+    |   IDENTIFIER
+    ;
+
+varListPlus:
+        varList
+    ;
+
+varList:
+        VARIABLE
+    |   varList VARIABLE
+    ;
+
+typeSpecifier:
+        '-' IDENTIFIER
+    ;
+
+funcDef:
+        '(' ':' FUNCTIONS varSymbolList ')'
+    ;
+
+dervDef:
+        '(' ':' DERIVED symbol conditions ')'
+    ;
+
+/* --- Ações --- */
+actDef:
+      '(' ACTION IDENTIFIER PARAMETERS parameters PRECONDITION conditions EFFECT effect ')'
+    ;
+
+/* --- Ações Durativas --- */
+durActDef:
+      '(' DURATIVE_ACTION IDENTIFIER PARAMETERS parameters DURATION duration_constraint CONDITION conditions EFFECT effect ')'
+    ;
+
+/* --- Parâmetros (lista de variáveis tipadas) --- */
+parameters:
+      '(' parameter_list_opt ')'
+    ;
+
+parameter_list_opt:
+      /* vazio */
+    | parameter_list
+    ;
+
+parameter_list:
+      typed_variable
+    | parameter_list typed_variable
+    ;
+
+typed_variable:
+      VARIABLE type_specifier_opt
+    ;
+
+/* --- Fórmulas (usadas em precondições, condições, etc.) --- */
+conditions:
+      atomic_formula
+    | '(' AND formula_list ')'
+    | '(' OR formula_list ')'
+    | '(' NOT conditions ')'
+    | '(' IMPLY conditions conditions ')'
+    | '(' EXISTS parameters conditions ')'
+    | '(' FORALL parameters conditions ')'
+    | '(' binary_comp term term ')'
+    ;
+
+formula_list:
+      conditions
+    | formula_list conditions
+    ;
+
+binary_comp:
+      LT
+    | LEQ
+    | EQ
+    | GEQ
+    | GT
+    ;
+
+/* --- Fórmula Atômica --- */
+atomic_formula:
+      '(' IDENTIFIER term_list_opt ')'
+    | IDENTIFIER
+    ;
+
+term_list_opt:
+      /* vazio */
+    | term_list
+    ;
+
+term_list:
+      term
+    | term_list term
+    ;
+
+term:
+      IDENTIFIER
+    | VARIABLE
+    | NUMBER
+    ;
+
+/* --- Efeitos --- */
+effect:
+      atomic_effect
+    | '(' AND effect_list ')'
+    | '(' WHEN conditions effect ')'
+    ;
+
+effect_list:
+      effect
+    | effect_list effect
+    ;
+
+atomic_effect:
+      literal
+    ;
+
+literal:
+      atomic_formula
+    | '(' NOT atomic_formula ')'
+    ;
+
+/* --- Restrições de duração para ações durativas --- */
+duration_constraint:
+      duration_exp
+    ;
+
+duration_exp:
+      '(' binary_comp time_specifier time_specifier ')'
+    ;
+
+/* Para “time_specifier” usamos as combinações: “at start”, “at end” ou “(over all)”  
+   (note que, no Flex, os operadores temporais são reconhecidos individualmente;  
+    aqui combinamos “AT” com “START” ou “END”). */
+time_specifier:
+      AT START
+    | AT END
+    | '(' OVER IDENTIFIER ')'  
+      /* Por exemplo, espera-se que IDENTIFIER seja “all” neste caso. */
+    ;
+
+/* ========================
+   ARQUIVO DE PROBLEMA (PROBLEM)
+   ======================== */
+problem:
+      '(' DEFINE problem_decl domain_decl_in_problem problem_body_defs ')'
+    ;
+
+problem_decl:
+      '(' PROBLEM IDENTIFIER ')'
+    ;
+
+domain_decl_in_problem:
+      '(' /* opcionalmente “:” pode aparecer antes de DOMAIN */ 
+           [':']? DOMAIN IDENTIFIER ')'
+    ;
+    /* Nota: a notação [':']? indica que o “:” é opcional. Caso não queira usar
+       essa notação, você pode criar uma regra extra ou definir um token para “:” */
+
+problem_body_defs:
+      problem_body_defs problem_body_def
+    | problem_body_def
+    ;
+
+problem_body_def:
+      objects_def
+    | init_def
+    | goal_def
+    | metric_spec
+    ;
+
+objects_def:
+      '(' OBJECTS typeListNames ')'
+    ;
+
+init_def:
+      '(' INIT atomic_formula_list ')'
+    ;
+
+atomic_formula_list:
+      atomic_formula
+    | atomic_formula_list atomic_formula
+    ;
+
+goal_def:
+      '(' GOAL conditions ')'
+    ;
+
+metric_spec:
+      '(' METRIC metric_op numeric_expression ')'
+    ;
+
+metric_op:
+      MINIMIZE
+    | MAXIMIZE
+    ;
+
+numeric_expression:
+      term
+    ;
+
+%%

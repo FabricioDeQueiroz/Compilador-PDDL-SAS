@@ -1,12 +1,16 @@
 %{
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <map>
 #include <string>
+#include "y.tab.h"
+
 using namespace std;
 
 map<string, int> tokenCount;
 
+void yyerror(char *c)
 %}
 
 %option noyywrap
@@ -18,19 +22,65 @@ COMMENT         ;[^\n]*\n
 
 %%
 
-"define"|"domain"|"requirements"|"types"|"constants"|"predicates"|"functions"|"constraints"|"action"|"parameters"|"precondition"|"effect"|"durative-action"|"duration"|"condition"|"derived"|"problem"|"objects"|"init"|"goal"|"metric"|"total-time"|"length"|"serial"|"parallel"   { tokenCount["KEYWORD"]++; }
-"assign"|"scale-up"|"scale-down"|"increase"|"decrease" { tokenCount["MODIFIER_OPERATOR"]++; }
-"minimize"|"maximize"                                  { tokenCount["OPTIMIZATION_OPERATOR"]++; }
-"and"|"or"|"not"|"imply"                               { tokenCount["LOGICAL_OPERATOR"]++; }
-"forall"|"exists"                                      { tokenCount["QUANTIFIER_OPERATOR"]++; }
-"when"                                                 { tokenCount["CONDITIONAL_OPERATOR"]++; }
-"at"|"over"|"start"|"end"                              { tokenCount["TEMPORAL_OPERATOR"]++; }
-"+"|"-"|"*"|"/"|"<"|">"|"="|"<="|">="                  { tokenCount["ARITHMETIC_OPERATOR"]++; }
-"("|")"|":"                                            { tokenCount["DELIMITER"]++; }
+"define"                                               { tokenCount["KEYWORD"]++; return DEFINE; }
+"domain"                                               { tokenCount["KEYWORD"]++; return DOMAIN; }
+"requirements"                                         { tokenCount["KEYWORD"]++; return REQUIREMENTS; }
+"types"                                                { tokenCount["KEYWORD"]++; return TYPES; }
+"constants"                                            { tokenCount["KEYWORD"]++; return CONSTANTS; }
+"predicates"                                           { tokenCount["KEYWORD"]++; return PREDICATES; }
+"functions"                                            { tokenCount["KEYWORD"]++; return FUNCTIONS; }
+"constraints"                                          { tokenCount["KEYWORD"]++; return CONSTRAINTS; }
+"action"                                               { tokenCount["KEYWORD"]++; return ACTION; }
+"parameters"                                           { tokenCount["KEYWORD"]++; return PARAMETERS; }
+"precondition"                                         { tokenCount["KEYWORD"]++; return PRECONDITION; }
+"effect"                                               { tokenCount["KEYWORD"]++; return EFFECT; }
+"durative-action"                                      { tokenCount["KEYWORD"]++; return DURATIVE_ACTION; }
+"duration"                                             { tokenCount["KEYWORD"]++; return DURATION; }
+"condition"                                            { tokenCount["KEYWORD"]++; return CONDITION; }
+"derived"                                              { tokenCount["KEYWORD"]++; return DERIVED; }
+"problem"                                              { tokenCount["KEYWORD"]++; return PROBLEM; }
+"objects"                                              { tokenCount["KEYWORD"]++; return OBJECTS; }
+"init"                                                 { tokenCount["KEYWORD"]++; return INIT; }
+"goal"                                                 { tokenCount["KEYWORD"]++; return GOAL; }
+"metric"                                               { tokenCount["KEYWORD"]++; return METRIC; }
+"total-time"                                           { tokenCount["KEYWORD"]++; return TOTAL_TIME; }
+"length"                                               { tokenCount["KEYWORD"]++; return LENGTH; }
+"serial"                                               { tokenCount["KEYWORD"]++; return SERIAL; }
+"parallel"                                             { tokenCount["KEYWORD"]++; return PARALLEL; }
+"assign"                                               { tokenCount["MODIFIER_OPERATOR"]++; return ASSIGN; }
+"scale-up"                                             { tokenCount["MODIFIER_OPERATOR"]++; return SCALE_UP; }
+"scale-down"                                           { tokenCount["MODIFIER_OPERATOR"]++; return SCALE_DOWN; }
+"increase"                                             { tokenCount["MODIFIER_OPERATOR"]++; return INCREASE; }
+"decrease"                                             { tokenCount["MODIFIER_OPERATOR"]++; return DECREASE; }
+"minimize"                                             { tokenCount["OPTIMIZATION_OPERATOR"]++; return MINIMIZE; }
+"maximize"                                             { tokenCount["OPTIMIZATION_OPERATOR"]++; return MAXIMIZE; }
+"and"                                                  { tokenCount["LOGICAL_OPERATOR"]++; return AND; }
+"or"                                                   { tokenCount["LOGICAL_OPERATOR"]++; return OR; }
+"not"                                                  { tokenCount["LOGICAL_OPERATOR"]++; return NOT; }
+"imply"                                                { tokenCount["LOGICAL_OPERATOR"]++; return IMPLY; }                          
+"forall"                                               { tokenCount["QUANTIFIER_OPERATOR"]++; return FORALL; }
+"exists"                                               { tokenCount["QUANTIFIER_OPERATOR"]++; return EXISTS; }
+"when"                                                 { tokenCount["CONDITIONAL_OPERATOR"]++; return WHEN; }
+"at"                                                   { tokenCount["TEMPORAL_OPERATOR"]++; return AT; }
+"over"                                                 { tokenCount["TEMPORAL_OPERATOR"]++; return OVER; }
+"start"                                                { tokenCount["TEMPORAL_OPERATOR"]++; return START; }
+"end"                                                  { tokenCount["TEMPORAL_OPERATOR"]++; return END; }
+"+"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return "+"; }
+"-"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return "-"; }
+"*"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return "*"; }
+"/"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return "/"; }
+"<"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return LT; }
+">"                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return GT; }
+"="                                                    { tokenCount["ARITHMETIC_OPERATOR"]++; return EQ; }
+"<="                                                   { tokenCount["ARITHMETIC_OPERATOR"]++; return LEQ; }
+">="                                                   { tokenCount["ARITHMETIC_OPERATOR"]++; return GEQ; }
+"("                                                    { tokenCount["DELIMITER"]++; return "("; }
+")"                                                    { tokenCount["DELIMITER"]++; return ")"; }
+":"                                                    { tokenCount["DELIMITER"]++; return ":"; }
 {COMMENT}                                              { tokenCount["COMMENTS"]++; }
-{NUMBER}                                               { tokenCount["NUMBER"]++; }
-{VARIABLE}                                             { tokenCount["VARIABLES"]++; }
-{IDENTIFIER}                                           { tokenCount["IDENTIFIER"]++; }
+{NUMBER}                                               { tokenCount["NUMBER"]++; yylval.number = atof(yytext); return NUMBER; }
+{VARIABLE}                                             { tokenCount["VARIABLES"]++; yylval.str = strdup(yytext); return VARIABLE; }
+{IDENTIFIER}                                           { tokenCount["IDENTIFIER"]++; yylval.str = strdup(yytext); return IDENTIFIER; }
 [[:space:]]+                                           ;
 .                                                      { tokenCount["UNKNOWN"]++; }
 
