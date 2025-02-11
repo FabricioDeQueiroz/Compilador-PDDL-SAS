@@ -9,7 +9,7 @@ LFLAGS = -lfl
 
 # A regra principal que vai compilar o projeto
 all:
-	flex -o lexerWithMain.l.cpp lexerWithMain.l
+	flex -o lexerWithMain.l.cpp lexerWithMain.lpp
 	g++ -o pddl_lexical lexerWithMain.l.cpp -lfl
 
 # Limpeza de arquivos
