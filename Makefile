@@ -9,13 +9,13 @@ LFLAGS = -lfl
 
 # A regra principal que vai compilar o projeto
 all:
-	bison -t -d -v --language=c++ sintax.ypp
-	flex -o lexerWithMain.l.cpp lexerWithMain.lpp
-	g++ -o pddl_sintax sintax.tab.cpp lexerWithMain.l.cpp -lfl
+	bison -t -d -v sintax.y
+	flex -o lexerWithMain.l.c lexerWithMain.l
+	g++ -o pddl_sintax sintax.tab.c lexerWithMain.l.c -lfl
 
 # Limpeza de arquivos
 clean:
-	rm -f $(TARGET) $(LEX_OUTPUT) lexerWithMain.l.cpp sintax.tab.cpp sintax.tab.hpp stack.hh sintax.output
+	rm -f $(TARGET) $(LEX_OUTPUT) lexerWithMain.l.cpp sintax.tab.cpp sintax.tab.hpp stack.hh sintax.output sintax.tab.c sintax.tab.h lexerWithMain.l.c
 	clear
 	
 test1:

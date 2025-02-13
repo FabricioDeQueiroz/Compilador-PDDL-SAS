@@ -1,0 +1,556 @@
+%{
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cstdlib>
+#include <set>
+
+using namespace std;
+
+extern FILE* yyin;
+
+extern int yylineno;
+
+int yylex(void);
+int yyparse();
+
+void yyerror(const char *s);
+
+std::set<std::string> reqKeys;
+
+void addReqKey(const std::string& req) {
+    reqKeys.insert(req);
+}
+
+bool hasReqKey(const std::string& req) {
+    return reqKeys.count(req) > 0;
+}
+%}
+
+%union {
+    char* str;
+    double number;
+}
+
+%token <str> IDENTIFIER
+%token <str> VARIABLE
+%token <number> NUMBER
+
+%token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS CONSTRAINTS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME LENGTH SERIAL PARALLEL
+
+%token ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE
+
+%token MINIMIZE MAXIMIZE
+
+%token AND OR NOT IMPLY
+
+%token FORALL EXISTS
+
+%token WHEN
+
+%token AT OVER START END
+
+%token LT GT EQ LEQ GEQ
+
+%token EITHER
+
+%token ALL
+
+%start argFile
+
+%%
+
+// Rev
+argFile:
+        domain
+    |   problem
+    ;
+
+// Rev
+domain:
+        '(' DEFINE '(' DOMAIN IDENTIFIER ')'
+        reqDef_Opt
+        typeDef_Opt
+        constDef_Opt
+        predDef_Opt
+        funcDef_Opt
+        structDef_NList  ')'
+    ;
+
+// Rev
+reqDef_Opt:
+        reqDef
+    |   /* vazio */
+    ;
+
+// Rev
+typeDef_Opt:
+        typeDef
+    |   /* vazio */
+    ;
+
+// Rev
+constDef_Opt:
+        constDef
+    |   /* vazio */
+    ;
+
+// Rev
+predDef_Opt:
+        predDef
+    |   /* vazio */
+    ;
+
+// Rev
+funcDef_Opt:
+        funcDef
+    |   /* vazio */
+    ;
+
+// Rev
+structDef_NList:
+        structDef_NList structDef
+    |   /* vazio */
+    ;
+        
+// Rev
+reqDef: 
+        '(' ':' REQUIREMENTS reqKey_List ')'
+    ;
+
+// Rev
+reqKey_List:
+        reqKey
+    |   reqKey_List reqKey
+    ;
+
+// Rev
+reqKey:
+        ':' IDENTIFIER { addReqKey($2); }
+    ;
+
+// Rev
+typeDef:
+        '(' ':' TYPES typedList ')'
+    ;
+
+// Rev
+typedList:
+        typedListElement
+    |   /* vazio */
+    ;
+
+// Rev
+typedListElement:
+        IDENTIFIER
+    |   typedListElementsList 
+    ;
+// Rev
+typedListElementsList:
+        IDENTIFIER
+    |   typedListElementsList IDENTIFIER
+    |   typedListElementsList IDENTIFIER '-' type typedList         { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+// Rev
+primitiveTypeList:
+        IDENTIFIER
+    |   primitiveTypeList IDENTIFIER
+    ;
+
+//Rev
+type:
+        '(' EITHER primitiveTypeList ')'
+    |   IDENTIFIER
+    ;
+
+// Rev
+constDef:
+        '(' ':' CONSTANTS typedList ')'
+    ;
+
+// Rev
+predDef:
+        '(' ':' PREDICATES atomicFormulaSkeletonList ')'
+    ;
+
+// Rev
+atomicFormulaSkeletonList:
+        atomicFormulaSkeleton
+    |   atomicFormulaSkeletonList atomicFormulaSkeleton
+    ;
+
+// Rev
+atomicFormulaSkeleton:
+        '(' IDENTIFIER typedListVar ')'
+    ;
+
+// Rev
+typedListVar:
+        typedListVarElement
+    |   /* vazio */
+    ;
+
+// Rev
+typedListVarElement:
+       typedListVarElementsList 
+    ;
+
+// Rev
+typedListVarElementsList:
+        VARIABLE
+    |   typedListVarElementsList VARIABLE
+    |   typedListVarElementsList VARIABLE '-' type typedListVar     { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+// Rev
+funcDef:
+        '(' ':' FUNCTIONS functionTypedList ')'         { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+//Rev
+functionTypedList:
+        atomicFormulaSkeletonList
+    |   atomicFormulaSkeletonList '-' NUMBER functionTypedList            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   /* vazio */
+    ;
+
+structDef:
+        actionDef
+    |   durativeActionDef           { if (!hasReqKey("durative-actions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   derivedDef                  { if (!hasReqKey("derived-predicates")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+//Rev
+actionDef:
+        '(' ':' ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' actionDefBody ')'
+    ;
+
+//Rev
+actionDefBody:
+        ':' PRECONDITION goalDef
+        ':' EFFECT effect
+    |   /* vazio */
+    ;
+
+// Rev
+goalDef:
+        '(' ')'
+    |   atomicFormulaTerm
+    |   literalTerm                                         { if (!hasReqKey("negative-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AND goalDef_NList ')'   
+    |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;    
+
+// Rev
+atomicFormulaTerm:
+        '(' PREDICATES term_NList ')'
+    ;
+
+// Rev
+term_NList:
+        term_NList term
+    |   /* vazio */
+    ;
+
+// Rev
+term:
+        VARIABLE
+    |   IDENTIFIER
+    ;
+
+//Rev
+literalTerm:
+        atomicFormulaTerm
+    |   '(' NOT atomicFormulaTerm ')'
+    ;
+
+// Rev
+goalDef_NList:
+        goalDef_NList goalDef
+    |   /* vazio */
+    ;
+
+// Rev
+typedListVar_NList:
+        typedListVar_NList typedListVar
+    |   /* vazio */
+    ;
+
+// Rev
+fComp:
+        '(' binaryComp fExp fExp ')'
+    ;
+
+// Rev
+binaryComp:
+        GT
+    |   LT
+    |   EQ
+    |   GEQ
+    |   LEQ
+    ;
+
+// Rev
+fExp:
+        NUMBER
+    |   '(' binaryOp fExp fExp ')'
+    |   '(' '-' fExp ')'
+    |   fHead
+    ;
+
+// Rev
+binaryOp:
+        '+'
+    |   '-'
+    |   '*'
+    |   '/'
+    ;
+
+// Rev
+fHead:
+        '(' IDENTIFIER term_NList ')'
+    |   IDENTIFIER
+    ;
+
+// Rev
+effect:
+        '(' ')'
+    |   '(' AND cEffect_NList ')'
+    |   cEffect
+
+// Rev
+cEffect:
+        '(' FORALL '(' var_NList ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' WHEN goalDef CondEffect ')'                 { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   pEffect
+    ;
+
+// Rev
+cEffect_NList:
+        cEffect_NList cEffect
+    |   /* vazio */
+    ;
+
+// Rev
+var_NList:
+        var_NList VARIABLE
+    |   /* vazio */
+    ;
+
+// Rev
+CondEffect:
+        '(' AND pEffect_NList ')'
+    |   pEffect
+    ;   
+
+// Rev
+pEffect:
+        '(' assignOp fHead fExp ')'
+    |   '(' NOT atomicFormulaTerm ')'
+    |    atomicFormulaTerm
+    |   '(' assignOp fHead fExp ')'                     { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+// Rev
+pEffect_NList:
+        pEffect_NList pEffect
+    |   /* vazio */
+    ;
+
+// Rev
+assignOp:
+        ASSIGN
+    |   SCALE_UP
+    |   SCALE_DOWN
+    |   INCREASE
+    |   DECREASE
+    ;
+
+// Rev
+durativeActionDef:
+        '(' ':' DURATIVE_ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' daDefBody ')'
+    ;
+
+// Rev
+daDefBody:
+        ':' DURATION '(' EQ '?' DURATION fExp ')' ':' CONDITION daGd                            /* TODO ver essa bomba: ':' effect daEffect */ 
+    ;
+
+// Rev
+daGd: 
+        '(' ')'
+    |   timedGd
+    |   '(' AND timedGdList ')'
+    ;
+
+// Rev
+timedGdList:
+        timedGdList timedGd
+    |   timedGd
+    ;
+
+// Rev
+timedGd:
+        '(' AT timeSpecifier goalDef ')'
+    |   '(' OVER interval goalDef ')'
+    ;
+
+// Rev
+timeSpecifier:
+        START
+    |   END
+    ;
+
+// Rev
+interval:
+        ALL
+    ;
+
+// Rev
+derivedDef:
+        '(' ':' DERIVED typedListVar goalDef ')'
+    ;
+
+// Rev
+problem:
+        '(' DEFINE '(' PROBLEM IDENTIFIER')'
+        '(' ':' DOMAIN IDENTIFIER ')'
+        reqDef_Opt
+        objctDeclaration_Opt
+        init
+        goal
+        metricSpec_Opt ')'
+    ;
+    
+// Rev
+objctDeclaration_Opt:
+        objctDeclaration
+    |   /* vazio */
+    ;
+
+// Rev
+objctDeclaration: 
+        '(' ':' OBJECTS typedList ')'
+    ;
+
+// Rev     
+init: 
+        '(' ':' INIT initEl_NList ')'
+    ;
+
+//Rev
+initEl_NList:
+        initEl_NList initEl
+    |   /* vazio */
+    ;
+
+// REV
+initEl:
+        literalName
+    |   '(' '=' fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+//Rev
+literalName:
+        atomicFormulaName
+    |   '(' NOT atomicFormulaName ')'
+    ;  
+
+// Rev
+atomicFormulaName:
+        '(' PREDICATES identifier_NList ')'
+    ;
+
+// Rev
+identifier_NList:
+        identifier_NList IDENTIFIER
+    |   /* vazio */
+    ;
+
+// Rev
+goal:
+        '(' ':' GOAL goalDef ')'
+    ;
+
+// Rev
+metricSpec_Opt:
+        metricSpec
+    |   /* vazio */
+    ;
+
+//Rev
+metricSpec:
+        '(' METRIC optimization groundFExp ')'
+    ;
+
+// Rev
+optimization:
+        MINIMIZE
+    |   MAXIMIZE
+    ;
+
+// Rev
+groundFExp:
+        '(' binaryOp groundFExp groundFExp ')'
+    |   '(' '-' groundFExp ')'
+    |   NUMBER
+    |   '(' IDENTIFIER identifier_NList ')'
+    |   TOTAL_TIME
+    |   IDENTIFIER
+    ;
+   
+%%
+
+int main(int argc, char **argv) {
+    if (argc < 3) {
+        cerr << "Uso: " << argv[0] << " <dominio.pddl> <problema.pddl>" << endl;
+        return 1;
+    }
+    
+
+    yyin = fopen(argv[1], "r");
+    if (!yyin) {
+        cerr << "Erro ao abrir arquivo: " << argv[1] << endl;
+        return 1;
+    }
+
+    if (yyparse() != 0) {
+        cerr << "Rejected: " << argv[1] << " at line " << yylineno << endl;
+        fclose(yyin);
+
+        return 0;
+    }
+
+    fclose(yyin);
+
+    yyin = fopen(argv[2], "r");
+    if (!yyin) {
+        cerr << "Erro ao abrir arquivo: " << argv[2] << endl;
+        return 1;
+    }
+
+    if (yyparse() != 0) {
+        cerr << "Rejected: " << argv[2] << " at line " << yylineno << endl;
+        fclose(yyin);
+
+        return 0;
+    }
+
+    fclose(yyin);
+
+    cout << "Accepted" << endl;
+
+    return 0;
+}
+
+static string errorMessage;
+
+void yyerror(const char *s) {
+    errorMessage = s; // Apenas armazena a mensagem de erro
+}
