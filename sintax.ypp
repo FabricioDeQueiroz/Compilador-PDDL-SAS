@@ -56,10 +56,12 @@ bool hasReqKey(const std::string& req) {
 
 %%
 
+// Rev
 argFile:
         domain
     |   problem
     ;
+
 
 domain:
         '(' DEFINE '(' DOMAIN IDENTIFIER ')'
@@ -68,139 +70,306 @@ domain:
         constDef_Opt
         predDef_Opt
         funcDef_Opt
-        constrDef_Opt
         structDef_NList  ')'
     ;
 
+// Rev
 reqDef_Opt:
         reqDef
     |   /* vazio */
     ;
 
+// Rev
 typeDef_Opt:
-        typeDef         { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        typeDef
     |   /* vazio */
     ;
 
+// Rev
 constDef_Opt:
         constDef
     |   /* vazio */
     ;
 
+// Rev
 predDef_Opt:
         predDef
     |   /* vazio */
     ;
 
+// Rev
 funcDef_Opt:
-        funcDef         { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        funcDef
     |   /* vazio */
     ;
 
-constrDef_Opt:
-        constrDef
-    |   /* vazio */
-    ;
-
+// Rev
 structDef_NList:
         structDef_NList structDef
     |   /* vazio */
     ;
-
+        
+// Rev
 reqDef: 
         '(' ':' REQUIREMENTS reqKey_List ')'
     ;
 
+// Rev
 reqKey_List:
         reqKey
     |   reqKey_List reqKey
     ;
 
+// Rev
 reqKey:
         ':' IDENTIFIER { addReqKey($1); }
     ;
 
+// Rev
 typeDef:
         '(' ':' TYPES typedList ')'
     ;
 
+// Rev
 typedList:
         typedListElement
     |   /* vazio */
     ;
 
+// Rev
 typedListElement:
         IDENTIFIER
     |   typedListElementsList 
     ;
-
+// Rev
 typedListElementsList:
         IDENTIFIER
     |   typedListElementsList IDENTIFIER
-    |   typedListElementsList IDENTIFIER '-' type typedList
+    |   typedListElementsList IDENTIFIER '-' type typedList         { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
+// Rev
 primitiveTypeList:
-        primitiveType
-    |   primitiveTypeList primitiveType
-    ;
-
-primitiveType:
         IDENTIFIER
+    |   primitiveTypeList IDENTIFIER
     ;
 
+//Rev
 type:
         '(' 'either' primitiveTypeList ')'
-    |   primitiveType
+    |   IDENTIFIER
     ;
 
+// Rev
 constDef:
         '(' ':' CONSTANTS typedList ')'
     ;
 
+// Rev
 predDef:
         '(' ':' PREDICATES atomicFormulaSkeletonList ')'
     ;
 
+// Rev
 atomicFormulaSkeletonList:
         atomicFormulaSkeleton
     |   atomicFormulaSkeletonList atomicFormulaSkeleton
     ;
 
+// Rev
 atomicFormulaSkeleton:
         '(' IDENTIFIER typedListVar ')'
     ;
 
+// Rev
 typedListVar:
         typedListVarElement
     |   /* vazio */
     ;
 
+// Rev
 typedListVarElement:
         VARIABLE
     |   typedListVarElementsList 
     ;
 
+// Rev
 typedListVarElementsList:
         VARIABLE
     |   typedListVarElementsList VARIABLE
     |   typedListVarElementsList VARIABLE '-' type typedListVar
     ;
 
+// Rev
 funcDef:
-        '(' ':' FUNCTIONS functionTypedList ')'
+        '(' ':' FUNCTIONS functionTypedList ')'         { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
+//Rev
 functionTypedList:
-        atomicFormulaSkeletonList       { if (!hasReqKey("numeric-fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   atomicFormulaSkeletonList '-' functionType functionTypedList
+        atomicFormulaSkeletonList
+    |   atomicFormulaSkeletonList '-' NUMBER functionTypedList            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   /* vazio */
     ;
 
-functionType:
-        NUMBER      { if (!hasReqKey("numeric-fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   type        { if (!hasReqKey("typing") || !hasReqKey("object-fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+structDef:
+        actionDef
+    |   durativeActionDef           { if (!hasReqKey("durative-actions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
+
+//Rev
+actionDef:
+        '(' ':' ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' actionDefBody ')'
+    ;
+
+//Rev
+actionDefBody:
+        ':' PRECONDITION goalDef
+        ':' EFFECT effect
+    |   /* vazio */
+    ;
+
+// Rev
+goalDef:
+        '(' ')'
+    |   atomicFormulaTerm
+    |   literalTerm                                         { if (!hasReqKey("negative-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AND goalDef_NList ')'   
+    |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;    
+
+// Rev
+atomicFormulaTerm:
+        '(' PREDICATE term_NList ')'
+    ;
+
+// Rev
+term_NList:
+        term_NList term
+    |   /* vazio */
+    ;
+
+// Rev
+term:
+        VARIABLE
+    |   IDENTIFIER
+    ;
+
+//Rev
+literalTerm:
+        atomicFormulaTerm
+    |   '(' NOT atomicFormulaTerm ')'
+    ;
+
+// Rev
+goalDef_NList:
+        goalDef_NList goalDef
+    |   /* vazio */
+    ;
+
+// Rev
+typedListVar_NList:
+        typedListVar_NList typedListVar
+    |   /* vazio */
+    ;
+
+// Rev
+fComp:
+        '(' binaryComp fExp fExp ')'
+    ;
+
+// Rev
+binaryComp:
+        GT
+    |   LT
+    |   EQ
+    |   GEQ
+    |   LEQ
+    ;
+
+// Rev
+fExp:
+        NUMBER
+    |   '(' binaryOp fExp fExp ')'
+    |   '(' '-' fExp ')'
+    |   fHead
+    ;
+
+// Rev
+binaryOp:
+        '+'
+    |   '-'
+    |   '*'
+    |   '/'
+    ;
+
+// Rev
+fHead:
+        '(' IDENTIFIER term_NList ')'
+    |   IDENTIFIER
+    ;
+
+// Rev
+effect:
+        '(' ')'
+    |   '(' AND cEffect_NList ')'
+    |   cEffect
+
+// Rev
+cEffect:
+        '(' FORALL '(' var_NList ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' WHEN goalDef CondEffect ')'                 { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   pEffect
+    ;
+
+// Rev
+cEffect_NList:
+        cEffect_NList cEffect
+    |   /* vazio */
+    ;
+
+// Rev
+var_NList:
+        var_NList VARIABLE
+    |   /* vazio */
+    ;
+
+// Rev
+CondEffect:
+        '(' AND pEffect_NList ')'
+    |   pEffect
+    ;   
+
+// Rev
+pEffect:
+        '(' assignOp fHead fExp ')'
+    |   '(' NOT atomicFormulaTerm ')'
+    |    atomicFormulaTerm
+    |   '(' assignOp fHead fExp ')'                     { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+// Rev
+pEffect_NList:
+        pEffect_NList pEffect
+    |   /* vazio */
+    ;
+
+// Rev
+assignOp:
+        ASSIGN
+    |   SCALE_UP
+    |   SCALE_DOWN
+    |   INCREASE
+    |   DECREASE
+    ;
+
+durativeActionDef:
+        '( ':' )'
 
 %%
 
