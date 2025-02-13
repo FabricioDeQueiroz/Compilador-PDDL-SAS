@@ -12,6 +12,7 @@ all:
 	bison -t -d -v sintax.y
 	flex -o lexerWithMain.l.c lexerWithMain.l
 	g++ -o pddl_sintax sintax.tab.c lexerWithMain.l.c -lfl
+	clear
 
 # Limpeza de arquivos
 clean:

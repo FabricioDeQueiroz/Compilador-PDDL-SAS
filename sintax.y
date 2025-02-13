@@ -16,6 +16,9 @@ int yyparse();
 
 void yyerror(const char *s);
 
+extern char *yytext;  // String do token atual no Flex
+extern int yytoken;   // Último token processado pelo Bison
+
 std::set<std::string> reqKeys;
 
 void addReqKey(const std::string& req) {
@@ -142,8 +145,7 @@ typedList:
 
 // Rev
 typedListElement:
-        IDENTIFIER
-    |   typedListElementsList 
+        typedListElementsList 
     ;
 // Rev
 typedListElementsList:
@@ -553,4 +555,5 @@ static string errorMessage;
 
 void yyerror(const char *s) {
     errorMessage = s; // Apenas armazena a mensagem de erro
+    cout << "Erro: " << s << " na linha " << yylineno << " token: " << yytext << endl;
 }
