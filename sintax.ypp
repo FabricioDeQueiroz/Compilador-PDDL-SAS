@@ -19,11 +19,11 @@ void yyerror(const char *s);
 std::set<std::string> reqKeys;
 
 void addReqKey(const std::string& req) {
-    requirements.insert(req);
+    reqKeys.insert(req);
 }
 
 bool hasReqKey(const std::string& req) {
-    return requirements.count(req) > 0;
+    return reqKeys.count(req) > 0;
 }
 %}
 
@@ -51,6 +51,10 @@ bool hasReqKey(const std::string& req) {
 %token AT OVER START END
 
 %token LT GT EQ LEQ GEQ
+
+%token EITHER
+
+%token ALL
 
 %start argFile
 
@@ -122,7 +126,7 @@ reqKey_List:
 
 // Rev
 reqKey:
-        ':' IDENTIFIER { addReqKey($1); }
+        ':' IDENTIFIER { addReqKey($2); }
     ;
 
 // Rev
@@ -246,7 +250,7 @@ goalDef:
 
 // Rev
 atomicFormulaTerm:
-        '(' PREDICATE term_NList ')'
+        '(' PREDICATES term_NList ')'
     ;
 
 // Rev
@@ -406,7 +410,7 @@ timeSpecifier:
 
 // Rev
 interval:
-        'all'
+        ALL
     ;
 
 // Rev
@@ -461,7 +465,7 @@ literalName:
 
 // Rev
 atomicFormulaName:
-        '(' PREDICATE identifier_NList ')'
+        '(' PREDICATES identifier_NList ')'
     ;
 
 // Rev
