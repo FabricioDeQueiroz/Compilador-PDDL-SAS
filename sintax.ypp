@@ -62,7 +62,7 @@ argFile:
     |   problem
     ;
 
-
+// Rev
 domain:
         '(' DEFINE '(' DOMAIN IDENTIFIER ')'
         reqDef_Opt
@@ -215,6 +215,7 @@ functionTypedList:
 structDef:
         actionDef
     |   durativeActionDef           { if (!hasReqKey("durative-actions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   derivedDef                  { if (!hasReqKey("derived-predicates")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 //Rev
@@ -368,9 +369,139 @@ assignOp:
     |   DECREASE
     ;
 
+// Rev
 durativeActionDef:
-        '( ':' )'
+        '(' ':' DURATIVE_ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' daDefBody ')'
+    ;
 
+// Rev
+daDefBody:
+        ':' DURATION '(' EQ '?' DURATION fExp ')' ':' CONDITION daGd                            /* TODO ver essa bomba: ':' effect daEffect */ 
+    ;
+
+// Rev
+daGd: 
+        '(' ')'
+    |   timedGd
+    |   '(' AND timedGdList ')'
+    ;
+
+// Rev
+timedGdList:
+        timedGdList timedGd
+    |   timedGd
+    ;
+
+// Rev
+timedGd:
+        '(' AT timeSpecifier goalDef ')'
+    |   '(' OVER interval goalDef ')'
+    ;
+
+// Rev
+timeSpecifier:
+        START
+    |   END
+    ;
+
+// Rev
+interval:
+        'all'
+    ;
+
+// Rev
+derivedDef:
+        '(' ':' DERIVED typedListVar goalDef ')'
+    ;
+
+// Rev
+problem:
+        '(' DEFINE '(' PROBLEM IDENTIFIER')'
+        '(' ':' DOMAIN IDENTIFIER ')'
+        reqDef_Opt
+        objctDeclaration_Opt
+        init
+        goal
+        metricSpec_Opt ')'
+    ;
+    
+// Rev
+objctDeclaration_Opt:
+        objctDeclaration
+    |   /* vazio */
+    ;
+
+// Rev
+objctDeclaration: 
+        '(' ':' OBJECTS typedList ')'
+    ;
+
+// Rev     
+init: 
+        '(' ':' INIT initEl_NList ')'
+    ;
+
+//Rev
+initEl_NList:
+        initEl_NList initEl
+    |   /* vazio */
+    ;
+
+// REV
+initEl:
+        literalName
+    |   '(' '=' fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+//Rev
+literalName:
+        atomicFormulaName
+    |   '(' NOT atomicFormulaName ')'
+    ;  
+
+// Rev
+atomicFormulaName:
+        '(' PREDICATE identifier_NList ')'
+    ;
+
+// Rev
+identifier_NList:
+        identifier_NList IDENTIFIER
+    |   /* vazio */
+    ;
+
+// Rev
+goal:
+        '(' ':' GOAL goalDef ')'
+    ;
+
+// Rev
+metricSpec_Opt:
+        metricSpec
+    |   /* vazio */
+    ;
+
+//Rev
+metricSpec:
+        '(' METRIC optimization groundFExp ')'
+    ;
+
+// Rev
+optimization:
+        MINIMIZE
+    |   MAXIMIZE
+    ;
+
+// Rev
+groundFExp:
+        '(' binaryOp groundFExp groundFExp ')'
+    |   '(' '-' groundFExp ')'
+    |   NUMBER
+    |   '(' IDENTIFIER identifier_NList ')'
+    |   TOTAL_TIME
+    |   IDENTIFIER
+    ;
+   
 %%
 
 int main(int argc, char **argv) {
