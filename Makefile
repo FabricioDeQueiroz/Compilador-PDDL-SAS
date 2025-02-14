@@ -1,4 +1,24 @@
+# all:
+# 	bison -t -d sintax.y
+# 	flex lexerWithMain.l
+# 	@echo "#include \"sintax.tab.h\"" > link.c
+# 	@echo "#include \"lex.yy.c\"" >> link.c
+# 	@echo "#include \"sintax.tab.c\"" >> link.c
+# 	g++ -E link.c -o compiler.c -DYYDEBUG -lfl
+# 	g++ -o pddl_sintax compiler.c
+# 	rm lex.yy.c sintax.tab.* sintax.output link.c
+
 all:
+	bison -t -d -v sintax.y
+	flex lexerWithMain.l
+	@echo "#include \"sintax.tab.h\"" > link.c
+	@echo "#include \"lex.yy.c\"" >> link.c
+	@echo "#include \"sintax.tab.c\"" >> link.c
+	g++ -E link.c -o compiler.c -lfl
+	g++ -o pddl_sintax compiler.c
+	rm lex.yy.c sintax.tab.* sintax.output link.c
+
+cpp:
 	bison -t -d -v sintax.ypp
 	flex lexerWithMain.l
 	@echo "#include \"sintax.tab.hpp\"" > link.c

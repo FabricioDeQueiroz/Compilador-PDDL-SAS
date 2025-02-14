@@ -39,35 +39,19 @@ bool hasReqKey(const std::string& req) {
 %token <str> VARIABLE
 %token <number> NUMBER
 
-%token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS CONSTRAINTS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME LENGTH SERIAL PARALLEL
-
-%token ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE
-
-%token MINIMIZE MAXIMIZE
-
-%token AND OR NOT IMPLY
-
-%token FORALL EXISTS
-
-%token WHEN
-
-%token AT OVER START END
-
-%token LT GT EQ LEQ GEQ
-
-%token EITHER
-
-%token ALL
+%token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS CONSTRAINTS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME LENGTH SERIAL PARALLEL ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE MINIMIZE MAXIMIZE AND OR NOT IMPLY FORALL EXISTS WHEN AT OVER START END LT GT EQ LEQ GEQ ALL EITHER
 
 %start argFile
 
 %%
 
+// REV
 argFile:
         domain
     |   problem
     ;
 
+// REV
 domain:
         '(' DEFINE '(' DOMAIN IDENTIFIER ')'
         reqDef_Opt
@@ -78,86 +62,99 @@ domain:
         structDef_NList ')'
     ;
 
+// REV
 reqDef_Opt:
-        reqDef
-    |   /* vazio */
+        /* vazio */
+    |   reqDef
     ;
 
+// REV
 typeDef_Opt:
-        typeDef
-    |   /* vazio */
+        /* vazio */
+    |   typeDef
     ;
 
 constDef_Opt:
-        constDef
-    |   /* vazio */
+        /* vazio */
+    |   constDef
     ;
 
 predDef_Opt:
-        predDef
-    |   /* vazio */
+        /* vazio */
+    |   predDef
     ;
 
 funcDef_Opt:
-        funcDef
-    |   /* vazio */
+        /* vazio */
+    |   funcDef
     ;
 
 structDef_NList:
-        structDef_NList structDef
-    |   /* vazio */
+        /* vazio */
+    |   structDef_NList structDef
     ;
 
+// REV
 reqDef: 
         '(' ':' REQUIREMENTS reqKey_List ')'
     ;
 
+// REV
 reqKey_List:
         reqKey
     |   reqKey_List reqKey
     ;
 
+// REV
 reqKey:
         ':' IDENTIFIER { addReqKey($2); }
     ;
 
+// REV
 typeDef:
-        '(' ':' TYPES typedList ')'
+        '(' ':' TYPES typedListName ')'
     ;
 
-typedList:
-        typedListElement
-    |   /* vazio */
+// REV
+typedListName:
+        typedListName_NList
+    |   typedListNameList '-' typeType typedListName        { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-typedListElement:
-        typedListElementsList 
+// REV
+typedListName_NList:
+        /* vazio */
+    |   typedListName_NList IDENTIFIER
     ;
 
-typedListElementsList:
+// REV
+typedListNameList:
         IDENTIFIER
-    |   typedListElementsList IDENTIFIER
-    |   typedListElementsList IDENTIFIER '-' type typedList         { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   typedListNameList IDENTIFIER
     ;
 
+// REV
+typeType:
+        '(' EITHER primitiveTypeList ')'
+    |   IDENTIFIER
+    ;
+
+// REV
 primitiveTypeList:
         IDENTIFIER
     |   primitiveTypeList IDENTIFIER
     ;
 
-type:
-        '(' EITHER primitiveTypeList ')'
-    |   IDENTIFIER
-    ;
-
 constDef:
-        '(' ':' CONSTANTS typedList ')'
+        '(' ':' CONSTANTS typedListName ')'
     ;
 
+// REV
 predDef:
         '(' ':' PREDICATES atomicFormulaSkeletonList ')'
     ;
 
+// REV
 atomicFormulaSkeletonList:
         atomicFormulaSkeleton
     |   atomicFormulaSkeletonList atomicFormulaSkeleton
@@ -168,14 +165,18 @@ atomicFormulaSkeleton:
     ;
 
 typedListVar:
-        typedListVarElementsList
-    |   /* vazio */
+        typedListVar_NList
+    |   typedListVarList '-' typeType typedListVar        { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-typedListVarElementsList:
+typedListVar_NList:
+        /* vazio */
+    |   typedListVar_NList VARIABLE
+    ;
+
+typedListVarList:
         VARIABLE
-    |   typedListVarElementsList VARIABLE
-    |   typedListVarElementsList VARIABLE '-' type typedListVar     { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   typedListVarList VARIABLE
     ;
 
 funcDef:
@@ -215,7 +216,7 @@ goalDef:
     |   '(' EXISTS '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' FORALL '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    ;    
+    ;
 
 atomicFormulaTerm:
         '(' PREDICATES term_NList ')'
@@ -281,6 +282,7 @@ effect:
         '(' ')'
     |   '(' AND cEffect_NList ')'
     |   cEffect
+    ;
 
 cEffect:
         '(' FORALL '(' var_NList ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
@@ -376,7 +378,7 @@ objctDeclaration_Opt:
     ;
 
 objctDeclaration: 
-        '(' ':' OBJECTS typedList ')'
+        '(' ':' OBJECTS typedListName ')'
     ;
      
 init: 
@@ -393,6 +395,7 @@ initEl:
     |   '(' '=' fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
+
 literalName:
         atomicFormulaName
     |   '(' NOT atomicFormulaName ')'
@@ -441,7 +444,6 @@ int main(int argc, char **argv) {
         cerr << "Uso: " << argv[0] << " <dominio.pddl> <problema.pddl>" << endl;
         return 1;
     }
-    
 
     yyin = fopen(argv[1], "r");
     if (!yyin) {
@@ -482,5 +484,5 @@ static string errorMessage;
 
 void yyerror(const char *s) {
     errorMessage = s; // Apenas armazena a mensagem de erro
-    cout << "Erro: " << s << " na linha " << yylineno << " token: " << yytext << endl;
+    cout << "Erro na linha " << yylineno << " | TOKEN: " << yytext << endl;
 }
