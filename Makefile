@@ -9,7 +9,7 @@
 # 	rm lex.yy.c sintax.tab.* sintax.output link.c
 
 all:
-	bison -t -d -v sintax.y
+	bison -t -d -v -Wcounterexamples sintax.y
 	flex lexerWithMain.l
 	@echo "#include \"sintax.tab.h\"" > link.c
 	@echo "#include \"lex.yy.c\"" >> link.c
@@ -46,6 +46,10 @@ sintest1:
 sintest2:
 	./pddl_sintax PDDL-Exemplo/dom5.pddl PDDL-Exemplo/prob5.pddl
 
-clean:	
-	rm lex.yy.c sintax.tab.* sintax.output link.c compiler.c pddl_sintax link.c
+# clean:	
+# 	rm lex.yy.c sintax.tab.* sintax.output link.c compiler.c pddl_sintax link.c
+# 	clear
+
+clean:
+	rm compiler.c pddl_sintax
 	clear

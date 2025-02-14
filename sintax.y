@@ -91,19 +91,29 @@ typeDef:
     ;
 
 typedListName:
-        typedListName_NList
-    |   typedListNameList '-' typeType typedListName        { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    ;
-
-typedListName_NList:
         /* vazio */
-    |   typedListName_NList IDENTIFIER
+    |   typedNameItems
     ;
 
-typedListNameList:
-        IDENTIFIER
-    |   typedListNameList IDENTIFIER
+typedNameItems:
+        typedNameItems typedNameItem
+    |   typedNameItem
     ;
+
+typedNameItem:
+        IDENTIFIER
+    |   typedGroup
+    ;
+
+typedGroup:
+        NameList '-' typeType               { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+NameList:
+        NameList IDENTIFIER
+    |   IDENTIFIER
+    ;
+    
 
 typeType:
         '(' EITHER primitiveTypeList ')'
@@ -133,18 +143,27 @@ atomicFormulaSkeleton:
     ;
 
 typedListVar:
-        typedListVar_NList
-    |   typedListVarList '-' typeType typedListVar        { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    ;
-
-typedListVar_NList:
         /* vazio */
-    |   typedListVar_NList VARIABLE
+    |   typedVarItems
     ;
 
-typedListVarList:
+typedVarItems:
+        typedVarItems typedVarItem
+    |   typedVarItem
+    ;
+
+typedVarItem:
         VARIABLE
-    |   typedListVarList VARIABLE
+    |   typedVarGroup
+    ;
+
+typedVarGroup:
+        VarList '-' typeType            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+VarList:
+        VarList VARIABLE
+    |   VARIABLE
     ;
 
 funcDef:
@@ -184,8 +203,8 @@ goalDef:
     |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' EXISTS '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' FORALL '(' typedListVar_NList ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
