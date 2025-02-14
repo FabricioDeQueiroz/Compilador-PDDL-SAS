@@ -16,9 +16,6 @@ int yyparse();
 
 void yyerror(const char *s);
 
-extern char *yytext;  // String do token atual no Flex
-extern int yytoken;   // Último token processado pelo Bison
-
 std::set<std::string> reqKeys;
 
 void addReqKey(const std::string& req) {
@@ -145,7 +142,8 @@ typedList:
 
 // Rev
 typedListElement:
-        typedListElementsList 
+        IDENTIFIER
+    |   typedListElementsList 
     ;
 // Rev
 typedListElementsList:
@@ -162,7 +160,7 @@ primitiveTypeList:
 
 //Rev
 type:
-        '(' EITHER primitiveTypeList ')'
+        '(' 'either' primitiveTypeList ')'
     |   IDENTIFIER
     ;
 
@@ -195,14 +193,15 @@ typedListVar:
 
 // Rev
 typedListVarElement:
-       typedListVarElementsList 
+        VARIABLE
+    |   typedListVarElementsList 
     ;
 
 // Rev
 typedListVarElementsList:
         VARIABLE
     |   typedListVarElementsList VARIABLE
-    |   typedListVarElementsList VARIABLE '-' type typedListVar     { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   typedListVarElementsList VARIABLE '-' type typedListVar
     ;
 
 // Rev
@@ -536,6 +535,7 @@ int main(int argc, char **argv) {
         cerr << "Erro ao abrir arquivo: " << argv[2] << endl;
         return 1;
     }
+    
 
     if (yyparse() != 0) {
         cerr << "Rejected: " << argv[2] << " at line " << yylineno << endl;
@@ -551,9 +551,6 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-static string errorMessage;
-
-void yyerror(const char *s) {
-    errorMessage = s; // Apenas armazena a mensagem de erro
-    cout << "Erro: " << s << " na linha " << yylineno << " token: " << yytext << endl;
+void yyerror(const char *s){
+    cerr << "Syntax error at line " << yylineno << ": " << s << endl;
 }

@@ -1,24 +1,13 @@
-# Definindo as variáveis
-CXX = g++
-LEX = flex
-LEX_FILE = lexer.l
-LEX_OUTPUT = lexer.l.cpp
-TARGET = pddl_sintax
-SOURCE = main.cpp lexer.l.cpp
-LFLAGS = -lfl
-
-# A regra principal que vai compilar o projeto
 all:
-	bison -t -d -v sintax.y
-	flex -o lexerWithMain.l.c lexerWithMain.l
-	g++ -o pddl_sintax sintax.tab.c lexerWithMain.l.c -lfl
-	clear
+	bison -t -d -v sintax.ypp
+	flex lexerWithMain.l
+	@echo "#include \"sintax.tab.hpp\"" > link.c
+	@echo "#include \"lex.yy.c\"" >> link.c
+	@echo "#include \"sintax.tab.cpp\"" >> link.c
+	g++ -E link.c -o compiler.c
+	g++ -o pddl_sintax compiler.c
+	rm lex.yy.c sintax.tab.* sintax.output link.c
 
-# Limpeza de arquivos
-clean:
-	rm -f $(TARGET) $(LEX_OUTPUT) lexerWithMain.l.cpp sintax.tab.cpp sintax.tab.hpp stack.hh sintax.output sintax.tab.c sintax.tab.h lexerWithMain.l.c
-	clear
-	
 test1:
 	./pddl_sintax PDDL-Exemplo/dom.pddl PDDL-Exemplo/prob.pddl
 
@@ -37,4 +26,6 @@ sintest1:
 sintest2:
 	./pddl_sintax PDDL-Exemplo/dom5.pddl PDDL-Exemplo/prob5.pddl
 
-.PHONY: all clean
+clean:	
+	rm lex.yy.c sintax.tab.* sintax.output link.c compiler.c pddl_sintax link.c
+	clear
