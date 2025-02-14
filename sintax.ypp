@@ -63,13 +63,11 @@ bool hasReqKey(const std::string& req) {
 
 %%
 
-// Rev
 argFile:
         domain
     |   problem
     ;
 
-// Rev
 domain:
         '(' DEFINE '(' DOMAIN IDENTIFIER ')'
         reqDef_Opt
@@ -80,132 +78,110 @@ domain:
         structDef_NList ')'
     ;
 
-// Rev
 reqDef_Opt:
         reqDef
     |   /* vazio */
     ;
 
-// Rev
 typeDef_Opt:
         typeDef
     |   /* vazio */
     ;
 
-// Rev
 constDef_Opt:
         constDef
     |   /* vazio */
     ;
 
-// Rev
 predDef_Opt:
         predDef
     |   /* vazio */
     ;
 
-// Rev
 funcDef_Opt:
         funcDef
     |   /* vazio */
     ;
 
-// Rev
 structDef_NList:
         structDef_NList structDef
     |   /* vazio */
     ;
-        
-// Rev
+
 reqDef: 
         '(' ':' REQUIREMENTS reqKey_List ')'
     ;
 
-// Rev
 reqKey_List:
         reqKey
     |   reqKey_List reqKey
     ;
 
-// Rev
 reqKey:
         ':' IDENTIFIER { addReqKey($2); }
     ;
 
-// Rev
 typeDef:
         '(' ':' TYPES typedList ')'
     ;
 
-// Rev
 typedList:
         typedListElement
     |   /* vazio */
     ;
 
-// Rev
 typedListElement:
         typedListElementsList 
     ;
-// Rev
+
 typedListElementsList:
         IDENTIFIER
     |   typedListElementsList IDENTIFIER
     |   typedListElementsList IDENTIFIER '-' type typedList         { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-// Rev
 primitiveTypeList:
         IDENTIFIER
     |   primitiveTypeList IDENTIFIER
     ;
 
-//Rev
 type:
         '(' EITHER primitiveTypeList ')'
     |   IDENTIFIER
     ;
 
-// Rev
 constDef:
         '(' ':' CONSTANTS typedList ')'
     ;
 
-// Rev
 predDef:
         '(' ':' PREDICATES atomicFormulaSkeletonList ')'
     ;
 
-// Rev
 atomicFormulaSkeletonList:
         atomicFormulaSkeleton
     |   atomicFormulaSkeletonList atomicFormulaSkeleton
     ;
 
-// Rev
 atomicFormulaSkeleton:
         '(' IDENTIFIER typedListVar ')'
     ;
 
-// Rev
 typedListVar:
         typedListVarElementsList
     |   /* vazio */
     ;
 
-// Rev
 typedListVarElementsList:
         VARIABLE
     |   typedListVarElementsList VARIABLE
     |   typedListVarElementsList VARIABLE '-' type typedListVar     { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-// Rev
 funcDef:
         '(' ':' FUNCTIONS functionTypedList ')'         { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-//Rev
 functionTypedList:
         atomicFormulaSkeletonList
     |   atomicFormulaSkeletonList '-' NUMBER functionTypedList            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
@@ -218,19 +194,16 @@ structDef:
     |   derivedDef                  { if (!hasReqKey("derived-predicates")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-//Rev
 actionDef:
         '(' ':' ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' actionDefBody ')'
     ;
 
-//Rev
 actionDefBody:
         ':' PRECONDITION goalDef
         ':' EFFECT effect
     |   /* vazio */
     ;
 
-// Rev
 goalDef:
         '(' ')'
     |   atomicFormulaTerm
@@ -244,47 +217,39 @@ goalDef:
     |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;    
 
-// Rev
 atomicFormulaTerm:
         '(' PREDICATES term_NList ')'
     ;
 
-// Rev
 term_NList:
         term_NList term
     |   /* vazio */
     ;
 
-// Rev
 term:
         VARIABLE
     |   IDENTIFIER
     ;
 
-//Rev
 literalTerm:
         atomicFormulaTerm
     |   '(' NOT atomicFormulaTerm ')'
     ;
 
-// Rev
 goalDef_NList:
         goalDef_NList goalDef
     |   /* vazio */
     ;
 
-// Rev
 typedListVar_NList:
         typedListVar_NList typedListVar
     |   /* vazio */
     ;
 
-// Rev
 fComp:
         '(' binaryComp fExp fExp ')'
     ;
 
-// Rev
 binaryComp:
         GT
     |   LT
@@ -293,7 +258,6 @@ binaryComp:
     |   LEQ
     ;
 
-// Rev
 fExp:
         NUMBER
     |   '(' binaryOp fExp fExp ')'
@@ -301,7 +265,6 @@ fExp:
     |   fHead
     ;
 
-// Rev
 binaryOp:
         '+'
     |   '-'
@@ -309,44 +272,37 @@ binaryOp:
     |   '/'
     ;
 
-// Rev
 fHead:
         '(' IDENTIFIER term_NList ')'
     |   IDENTIFIER
     ;
 
-// Rev
 effect:
         '(' ')'
     |   '(' AND cEffect_NList ')'
     |   cEffect
 
-// Rev
 cEffect:
         '(' FORALL '(' var_NList ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' WHEN goalDef CondEffect ')'                 { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   pEffect
     ;
 
-// Rev
 cEffect_NList:
         cEffect_NList cEffect
     |   /* vazio */
     ;
 
-// Rev
 var_NList:
         var_NList VARIABLE
     |   /* vazio */
     ;
 
-// Rev
 CondEffect:
         '(' AND pEffect_NList ')'
     |   pEffect
     ;   
 
-// Rev
 pEffect:
         '(' assignOp fHead fExp ')'
     |   '(' NOT atomicFormulaTerm ')'
@@ -354,13 +310,11 @@ pEffect:
     |   '(' assignOp fHead fExp ')'                     { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
-// Rev
 pEffect_NList:
         pEffect_NList pEffect
     |   /* vazio */
     ;
 
-// Rev
 assignOp:
         ASSIGN
     |   SCALE_UP
@@ -369,52 +323,43 @@ assignOp:
     |   DECREASE
     ;
 
-// Rev
 durativeActionDef:
         '(' ':' DURATIVE_ACTION IDENTIFIER ':' PARAMETERS '(' typedListVar ')' daDefBody ')'
     ;
 
-// Rev
 daDefBody:
         ':' DURATION '(' EQ '?' DURATION fExp ')' ':' CONDITION daGd                            /* TODO ver essa bomba: ':' effect daEffect */ 
     ;
 
-// Rev
 daGd: 
         '(' ')'
     |   timedGd
     |   '(' AND timedGdList ')'
     ;
 
-// Rev
 timedGdList:
         timedGdList timedGd
     |   timedGd
     ;
 
-// Rev
 timedGd:
         '(' AT timeSpecifier goalDef ')'
     |   '(' OVER interval goalDef ')'
     ;
 
-// Rev
 timeSpecifier:
         START
     |   END
     ;
 
-// Rev
 interval:
         ALL
     ;
 
-// Rev
 derivedDef:
         '(' ':' DERIVED typedListVar goalDef ')'
     ;
 
-// Rev
 problem:
         '(' DEFINE '(' PROBLEM IDENTIFIER')'
         '(' ':' DOMAIN IDENTIFIER ')'
@@ -425,74 +370,61 @@ problem:
         metricSpec_Opt ')'
     ;
     
-// Rev
 objctDeclaration_Opt:
         objctDeclaration
     |   /* vazio */
     ;
 
-// Rev
 objctDeclaration: 
         '(' ':' OBJECTS typedList ')'
     ;
-
-// Rev     
+     
 init: 
         '(' ':' INIT initEl_NList ')'
     ;
 
-//Rev
 initEl_NList:
         initEl_NList initEl
     |   /* vazio */
     ;
 
-// REV
 initEl:
         literalName
     |   '(' '=' fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
-//Rev
 literalName:
         atomicFormulaName
     |   '(' NOT atomicFormulaName ')'
     ;  
 
-// Rev
 atomicFormulaName:
         '(' PREDICATES identifier_NList ')'
     ;
 
-// Rev
 identifier_NList:
         identifier_NList IDENTIFIER
     |   /* vazio */
     ;
 
-// Rev
 goal:
         '(' ':' GOAL goalDef ')'
     ;
 
-// Rev
 metricSpec_Opt:
         metricSpec
     |   /* vazio */
     ;
 
-//Rev
 metricSpec:
         '(' METRIC optimization groundFExp ')'
     ;
 
-// Rev
 optimization:
         MINIMIZE
     |   MAXIMIZE
     ;
 
-// Rev
 groundFExp:
         '(' binaryOp groundFExp groundFExp ')'
     |   '(' '-' groundFExp ')'
