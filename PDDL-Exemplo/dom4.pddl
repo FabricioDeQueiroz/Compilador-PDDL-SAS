@@ -1,33 +1,29 @@
-(define (domain delivery)
-  (:requirements :strips :typing)
-  (:types
-    robot location package - object
-  )
-  ;; teste tal tal tal
-  (:predicates
-    (at ?r - robot ?l - location)
-    (holding ?r - robot ?p - package)
-    (delivered ?p - package)
-    (clear ?l - location)
-    (package-at ?p - package ?l - location)
-  )
-  ; testando
-  ; testando 2
-  (:action move
-    :parameters (?r - robot ?from - location ?to - location)
-    :precondition (and (at ?r ?from) (clear ?to))
-    :effect (and (not (at ?r ?from)) (at ?r ?to) (not (clear ?to)) (clear ?from))
-  )
-
-  (:action pick-up
-    :parameters (?r - robot ?p - package ?l - location)
-    :precondition (and (at ?r ?l) (package-at ?p ?l) (clear ?l))
-    :effect (and (holding ?r ?p) (not (package-at ?p ?l)) (not (clear ?l)))
-  )
-
-  (:action deliver
-    :parameters (?r - robot ?p - package ?l - location)
-    :precondition (and (at ?r ?l) (holding ?r ?p))
-    :effect (and (delivered ?p) (not (holding ?r ?p)))
-  )
-)
+(define (domain caminhando)
+	;; BCR compra dindin na FGA :)
+	(:types lugar dindin)
+	(:predicates
+		(Ligado ?l1 ?l2 - lugar)
+		(estou-em ?l - lugar)
+		(passei-em ?l - lugar)
+		(comprar-dindin ?d - dindin)
+		(tem-dindin ?d - dindin)
+		(lugar-eh ?l1 ?l2 - lugar))
+	(:action mover
+		:parameters (?l1 ?l2 - lugar)
+		:precondition (and (estou-em ?l1) (or (Ligado ?l1 ?l2) (Ligado ?l2 ?l1)))
+		:effect (and (not (estou-em ?l1)) (passei-em ?l2) (estou-em ?l2)
+			(not (lugar-eh ?l1 ?l1)) (lugar-eh ?l2 ?l2)))
+	(:action comprardindin
+		:parameters (?l - lugar ?d - dindin)
+		:precondition (and (lugar-eh ?l DindinGourmet) (tem-dindin ?d))
+		:effect (and (comprar-dindin ?d) (not (tem-dindin ?d))))
+	(:action comprar-todos-dindin
+		:parameters (?l - lugar)
+		:precondition (and (forall (?d - dindin) (tem-dindin ?d)) (lugar-eh ?l DindinGourmet))
+		:effect (forall (?d - dindin) (and (comprar-dindin ?d) 
+			(not (tem-dindin ?d)))))
+	(:action terremoto
+		:parameters ()
+		:precondition (forall (?l - lugar) (and (forall (?d - dindin) (and))))
+		:effect (forall (?l1 - lugar) (forall (?l2 - lugar)
+			(not (Ligado ?l1 ?l2))))))

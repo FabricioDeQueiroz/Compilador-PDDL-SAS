@@ -12,7 +12,7 @@ int yyparse(void);
 
 void yyerror(const char *s);
 
-extern char *yytext;  // String do token atual no Flex
+extern char *yytext;  // TODO apagar: String do token atual no Flex
 
 #define MAX_REQ_KEYS 1024
 static char *reqKeys[MAX_REQ_KEYS];
@@ -105,6 +105,7 @@ typedNameItem:
 
 typedGroup:
         NameList '-' typeType               { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   NameList
     ;
 
 NameList:
@@ -155,6 +156,7 @@ typedVarItem:
 
 typedVarGroup:
         VarList '-' typeType            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   VarList
     ;
 
 VarList:
@@ -259,18 +261,13 @@ effect:
     ;
 
 cEffect:
-        '(' FORALL '(' var_NList ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        '(' FORALL '(' typedListVar ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' WHEN goalDef CondEffect ')'                 { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   pEffect
     ;
 
 cEffect_NList:
         cEffect_NList cEffect
-    |   /* vazio */
-    ;
-
-var_NList:
-        var_NList VARIABLE
     |   /* vazio */
     ;
 
@@ -373,7 +370,7 @@ initEl_NList:
 
 initEl:
         literalName
-    |   '(' '=' fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EQ fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
@@ -445,6 +442,8 @@ int main(int argc, char **argv) {
     }
 
     fclose(yyin);
+
+    yylineno = 1;
 
     yyin = fopen(argv[2], "r");
     if (!yyin) {

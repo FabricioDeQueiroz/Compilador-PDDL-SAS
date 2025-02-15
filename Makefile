@@ -19,15 +19,16 @@ all:
 	gcc -o pddl_sintax compiler.c
 	rm lex.yy.c sintax.tab.* link.c
 
-cpp:
-	bison -t -d -v sintax.ypp
+debug:
+	cp sintax.yacc sintax.y
+	bison -d sintax.y
 	flex lexerWithMain.l
-	@echo "#include \"sintax.tab.hpp\"" > link.c
+	@echo "#include \"sintax.tab.h\"" > link.c
 	@echo "#include \"lex.yy.c\"" >> link.c
-	@echo "#include \"sintax.tab.cpp\"" >> link.c
-	g++ -E link.c -o compiler.c
-	g++ -o pddl_sintax compiler.c
-	rm lex.yy.c sintax.tab.* sintax.output link.c
+	@echo "#include \"sintax.tab.c\"" >> link.c
+	gcc -E link.c -o compiler.c -DYYDEBUG -lfl
+	gcc -o pddl_sintax compiler.c
+	rm lex.yy.c sintax.tab.* link.c
 
 test1:
 	./pddl_sintax PDDL-Exemplo/dom.pddl PDDL-Exemplo/prob.pddl
