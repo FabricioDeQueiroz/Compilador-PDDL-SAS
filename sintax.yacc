@@ -45,6 +45,8 @@ int hasReqKey(const char *req) {
 
 %token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE MINIMIZE MAXIMIZE AND OR NOT IMPLY FORALL EXISTS WHEN AT OVER START END LT GT EQ LEQ GEQ ALL EITHER
 
+%token STRIPS TYPING NEGATIVE_PRECONDITIONS DISJUNCTIVE_PRECONDITIONS EQUALITY EXISTENTIAL_PRECONDITIONS UNIVERSAL_PRECONDITIONS QUANTIFIED_PRECONDITIONS CONDITIONAL_EFFECTS FLUENTS ADL DURATIVE_ACTIONS DERIVED_PREDICATES TIMED_INITIAL_LITERALS DURATION_INEQUALITIES CONTINUOUS_EFFECTS PREFERENCES CONSTRAINTS ACTION_COSTS NUMERIC_FLUENTS
+
 %start argFile
 
 %%
@@ -77,12 +79,31 @@ reqDef:
     ;
 
 reqKey_List:
-        reqKey
-    |   reqKey_List reqKey
+        reqKey_List reqKey
+    |   reqKey
     ;
 
 reqKey:
-        ':' IDENTIFIER { addReqKey($2); }
+        ':' STRIPS { addReqKey("strips"); }
+    |   ':' TYPING { addReqKey("typing"); }
+    |   ':' NEGATIVE_PRECONDITIONS { addReqKey("negative-preconditions"); }
+    |   ':' DISJUNCTIVE_PRECONDITIONS { addReqKey("disjunctive-preconditions"); }
+    |   ':' EQUALITY { addReqKey("equality"); }
+    |   ':' EXISTENTIAL_PRECONDITIONS { addReqKey("existential-preconditions"); }
+    |   ':' UNIVERSAL_PRECONDITIONS { addReqKey("universal-preconditions"); }
+    |   ':' QUANTIFIED_PRECONDITIONS { addReqKey("quantified-preconditions"); }
+    |   ':' CONDITIONAL_EFFECTS { addReqKey("conditional-effects"); }
+    |   ':' FLUENTS { addReqKey("fluents"); }
+    |   ':' NUMERIC_FLUENTS { addReqKey("numeric-fluents"); }
+    |   ':' ADL { addReqKey("adl"); }
+    |   ':' DURATIVE_ACTIONS { addReqKey("durative-actions"); }
+    |   ':' DERIVED_PREDICATES { addReqKey("derived-predicates"); }
+    |   ':' TIMED_INITIAL_LITERALS { addReqKey("timed-initial-literals"); }
+    |   ':' DURATION_INEQUALITIES { addReqKey("duration-inequalities"); }
+    |   ':' CONTINUOUS_EFFECTS { addReqKey("continuous-effects"); }
+    |   ':' PREFERENCES { addReqKey("preferences"); }
+    |   ':' CONSTRAINTS { addReqKey("constraints"); }
+    |   ':' ACTION_COSTS { addReqKey("action-costs"); }
     ;
 
 typeDef:
@@ -136,8 +157,13 @@ atomicFormulaSkeletonList:
     |   atomicFormulaSkeletonList atomicFormulaSkeleton
     ;
 
+predicate:
+        IDENTIFIER
+    |   AT
+    ;
+
 atomicFormulaSkeleton:
-        '(' IDENTIFIER typedListVar ')'
+        '(' predicate typedListVar ')'
     ;
 
 typedListVar:
@@ -169,9 +195,32 @@ funcDef:
     ;
 
 functionTypedList:
-        atomicFormulaSkeletonList
-    |   atomicFormulaSkeletonList '-' NUMBER functionTypedList            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   /* vazio */
+        /* vazio */
+    |   typedFunctionItems
+    ;
+
+typedFunctionItems:
+        typedFunctionItems typedFunctionItem
+    |   typedFunctionItem
+    ;
+
+typedFunctionItem:
+        typedFunctionGroup
+    ;
+
+typedFunctionGroup:
+        atomicFunctionList '-' identNumber               { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   atomicFunctionList
+    ;
+
+identNumber:
+        IDENTIFIER
+    |   NUMBER
+    ;
+
+atomicFunctionList:
+        atomicFormulaSkeletonList atomicFormulaSkeleton
+    |   atomicFormulaSkeleton
     ;
 
 structDef:
@@ -206,7 +255,7 @@ goalDef:
     ;
 
 atomicFormulaTerm:
-        '(' IDENTIFIER term_NList ')'
+        '(' predicate term_NList ')'
     ;
 
 term_NList:
@@ -371,7 +420,19 @@ initEl_NList:
 initEl:
         literalName
     |   '(' EQ fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' AT NUMBER literalName ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AT identifierNumbers ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    ;
+
+// TODO gambiarra: pq há exemplos errados no moj
+identifierNumber:
+        IDENTIFIER
+    |   NUMBER
+    ;
+
+// TODO gambiarra: pq há exemplos errados no moj
+identifierNumbers:
+        identifierNumbers identifierNumber
+    |   identifierNumber
     ;
 
 literalName:
@@ -384,8 +445,8 @@ atomicFormulaName:
     ;
 
 identifier_NList:
-        identifier_NList IDENTIFIER
-    |   /* vazio */
+        /* vazio */
+    |   identifier_NList IDENTIFIER
     ;
 
 goal:
@@ -398,7 +459,7 @@ metricSpec_Opt:
     ;
 
 metricSpec:
-        '(' METRIC optimization groundFExp ')'
+        '(' ':' METRIC optimization groundFExp ')'
     ;
 
 optimization:

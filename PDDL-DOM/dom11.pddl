@@ -1,5 +1,5 @@
 (define (domain lights)
-  (:requirements :strips :typing :negative-preconditions :equality :existential-preconditions :universal-preconditions :quantified-preconditions :conditiona-effects :fluents :numeric-fluents :adl :durative-actions :duration-inequalities :continuous-effects :derived-predicates :timed-inital-literals :preferences :constraints :action-costs)
+  (:requirements :strips :typing :negative-preconditions :equality :existential-preconditions :universal-preconditions :quantified-preconditions :conditional-effects :fluents :numeric-fluents :adl :durative-actions :duration-inequalities :continuous-effects :derived-predicates :timed-initial-literals :preferences :constraints :action-costs)
   (:predicates (light-on) )
 
   (:action turn-on
