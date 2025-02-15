@@ -31,27 +31,69 @@ debug:
 	rm lex.yy.c sintax.tab.* link.c
 
 test1:
-	./pddl_sintax PDDL-Exemplo/dom.pddl PDDL-Exemplo/prob.pddl
+	./pddl_sintax PDDL-DOM/dom1.pddl PDDL-PROB/prob1.pddl
+	echo "Deveria ter sido: Accepted"
 
 test2:
-	./pddl_sintax PDDL-Exemplo/dom2.pddl PDDL-Exemplo/prob2.pddl
+	./pddl_sintax PDDL-DOM/dom2.pddl PDDL-PROB/prob2.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/problem-fga.pddl at line 35"
 
 test3:
-	./pddl_sintax PDDL-Exemplo/dom3.pddl PDDL-Exemplo/prob3.pddl
+	./pddl_sintax PDDL-DOM/dom3.pddl PDDL-PROB/prob3.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/domain.pddl at line 1"
 
-testpy:
-	./pddl_sintax PDDL-Exemplo/teste.py
+test4:
+	./pddl_sintax PDDL-DOM/dom4.pddl PDDL-PROB/prob4.pddl
+	echo "Deveria ter sido: Accepted"
 
-sintest1:
-	./pddl_sintax PDDL-Exemplo/dom4.pddl PDDL-Exemplo/prob4.pddl
+test5:
+	./pddl_sintax PDDL-DOM/dom5.pddl PDDL-PROB/prob5.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/problem.pddl at line 34"
 
-sintest2:
-	./pddl_sintax PDDL-Exemplo/dom5.pddl PDDL-Exemplo/prob5.pddl
+test6:
+	./pddl_sintax PDDL-DOM/dom6.pddl PDDL-PROB/prob6.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/domain-snake.pddl at line 26"
 
-# clean:	
-# 	rm lex.yy.c sintax.tab.* sintax.output link.c compiler.c pddl_sintax link.c
-# 	clear
+test7:
+	./pddl_sintax PDDL-DOM/dom7.pddl PDDL-PROB/prob7.pddl
+	echo "Deveria ter sido: Accepted"
+
+test8:
+	./pddl_sintax PDDL-DOM/dom8.pddl PDDL-PROB/prob8.pddl
+	echo "Deveria ter sido: Accepted"
+
+test9:
+	./pddl_sintax PDDL-DOM/dom9.pddl PDDL-PROB/prob9.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/domain.pddl at line 9"
+
+test10:	
+	./pddl_sintax PDDL-DOM/dom10.pddl PDDL-PROB/prob10.pddl
+	echo "Deveria ter sido: Rejected: /tmp/in/domain.pddl at line 2"
+
+test11:
+	./pddl_sintax PDDL-DOM/dom11.pddl PDDL-PROB/prob11.pddl
+	echo "Deveria ter sido: Accepted"
+
+test12:
+	./pddl_sintax PDDL-DOM/dom12.pddl PDDL-PROB/prob12.pddl
+	echo "Deveria ter sido: Accepted"
+
+testall:
+	clear
+	make test1
+	make test2
+	make test3
+	make test4
+	make test5
+	make test6
+	make test7
+	make test8
+	make test9
+	make test10
+	make test11
+	make test12
 
 clean:
+	clear
 	rm compiler.c pddl_sintax sintax.y
 	clear

@@ -1,0 +1,5 @@
+(define (problem test-lights)
+  (:domain lights)
+  (:init (not (light-on)))
+  (:goal (light-on))
+)
