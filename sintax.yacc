@@ -13,7 +13,6 @@ int yyparse(void);
 void yyerror(const char *s);
 
 extern char *yytext;  // String do token atual no Flex
-extern int yytoken;   // Último token processado pelo Bison
 
 #define MAX_REQ_KEYS 1024
 static char *reqKeys[MAX_REQ_KEYS];
@@ -101,8 +100,7 @@ typedNameItems:
     ;
 
 typedNameItem:
-        IDENTIFIER
-    |   typedGroup
+        typedGroup
     ;
 
 typedGroup:
@@ -152,8 +150,7 @@ typedVarItems:
     ;
 
 typedVarItem:
-        VARIABLE
-    |   typedVarGroup
+        typedVarGroup
     ;
 
 typedVarGroup:
@@ -201,8 +198,8 @@ goalDef:
     |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' EXISTS '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' FORALL '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 

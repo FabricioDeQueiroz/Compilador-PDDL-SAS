@@ -114,7 +114,6 @@ NameList:
     |   IDENTIFIER
     ;
     
-
 typeType:
         '(' EITHER primitiveTypeList ')'
     |   IDENTIFIER
@@ -198,13 +197,12 @@ actionDefBody:
 goalDef:
         '(' ')'
     |   atomicFormulaTerm
-    |   literalTerm                                         { if (!hasReqKey("negative-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' AND goalDef_NList ')'   
     |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' EXISTS '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' FORALL '(' typedListVar ')' goalDef ')'   { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
@@ -220,10 +218,6 @@ term_NList:
 term:
         VARIABLE
     |   IDENTIFIER
-    ;
-
-literalTerm:
-       '(' NOT atomicFormulaTerm ')'
     ;
 
 goalDef_NList:
