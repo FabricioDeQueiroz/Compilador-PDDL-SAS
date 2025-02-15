@@ -9,6 +9,7 @@
 # 	rm lex.yy.c sintax.tab.* sintax.output link.c
 
 all:
+	cp sintax.yacc sintax.y
 	bison -d sintax.y
 	flex lexerWithMain.l
 	@echo "#include \"sintax.tab.h\"" > link.c
@@ -51,5 +52,5 @@ sintest2:
 # 	clear
 
 clean:
-	rm compiler.c pddl_sintax
+	rm compiler.c pddl_sintax sintax.y
 	clear
