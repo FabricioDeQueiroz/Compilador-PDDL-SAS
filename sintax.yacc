@@ -427,18 +427,18 @@ int main(int argc, char **argv) {
     #endif */
 
     if (argc < 3) {
-        fprintf(stderr, "Uso: %s <dominio.pddl> <problema.pddl>\n", argv[0]);
+        printf("Uso: %s <dominio.pddl> <problema.pddl>\n", argv[0]);
         return 1;
     }
 
     yyin = fopen(argv[1], "r");
     if (!yyin) {
-        fprintf(stderr, "Erro ao abrir arquivo: %s\n", argv[1]);
+        printf("Erro ao abrir arquivo: %s\n", argv[1]);
         return 1;
     }
 
     if (yyparse() != 0) {
-        fprintf(stderr, "Rejected: %s at line %d\n", argv[1], yylineno);
+        printf("Rejected: %s at line %d\n", argv[1], yylineno);
         fclose(yyin);
 
         return 0;
@@ -448,12 +448,12 @@ int main(int argc, char **argv) {
 
     yyin = fopen(argv[2], "r");
     if (!yyin) {
-        fprintf(stderr, "Erro ao abrir arquivo: %s\n", argv[2]);
+        printf("Erro ao abrir arquivo: %s\n", argv[2]);
         return 1;
     }
 
     if (yyparse() != 0) {
-        fprintf(stderr, "Rejected: %s at line %d\n", argv[2], yylineno);
+        printf("Rejected: %s at line %d\n", argv[2], yylineno);
         fclose(yyin);
 
         return 0;
