@@ -47,7 +47,7 @@ int hasReqKey(const char* key) {
 void checkRequirement(const char* key) {
     if (!hasReqKey(key)) {
         printf("Rejected: %s at line %d\n", current_filename, yylineno);
-        return 0;
+        exit(0);
     }
 }
 %}
@@ -63,7 +63,7 @@ void checkRequirement(const char* key) {
 
 %token DEFINE DOMAIN REQUIREMENTS TYPES CONSTANTS PREDICATES FUNCTIONS ACTION PARAMETERS PRECONDITION EFFECT DURATIVE_ACTION DURATION CONDITION DERIVED PROBLEM OBJECTS INIT GOAL METRIC TOTAL_TIME ASSIGN SCALE_UP SCALE_DOWN INCREASE DECREASE MINIMIZE MAXIMIZE AND OR NOT IMPLY FORALL EXISTS WHEN AT OVER START END LT GT EQ LEQ GEQ ALL EITHER
 
-%token STRIPS TYPING NEGATIVE_PRECONDITIONS DISJUNCTIVE_PRECONDITIONS EQUALITY EXISTENTIAL_PRECONDITIONS UNIVERSAL_PRECONDITIONS QUANTIFIED_PRECONDITIONS CONDITIONAL_EFFECTS FLUENTS ADL DURATIVE_ACTIONS DERIVED_PREDICATES TIMED_INITIAL_LITERALS DURATION_INEQUALITIES CONTINUOUS_EFFECTS PREFERENCES CONSTRAINTS ACTION_COSTS NUMERIC_FLUENTS
+%token STRIPS TYPING NEGATIVE_PRECONDITIONS DISJUNCTIVE_PRECONDITIONS EQUALITY EXISTENTIAL_PRECONDITIONS UNIVERSAL_PRECONDITIONS QUANTIFIED_PRECONDITIONS CONDITIONAL_EFFECTS FLUENTS ADL DURATIVE_ACTIONS DERIVED_PREDICATES TIMED_INITIAL_LITERALS DURATION_INEQUALITIES CONTINUOUS_EFFECTS PREFERENCES CONSTRAINTS ACTION_COSTS NUMERIC_FLUENTS OBJECT_FLUENTS
 
 %start argFile
 
@@ -107,11 +107,10 @@ reqKey:
     |   ':' NEGATIVE_PRECONDITIONS { addReqKey("negative-preconditions"); }
     |   ':' DISJUNCTIVE_PRECONDITIONS { addReqKey("disjunctive-preconditions"); }
     |   ':' EQUALITY { addReqKey("equality"); }
-    |   ':' EXISTENTIAL_PRECONDITIONS { addReqKey("existential-preconditions"); }
-    |   ':' UNIVERSAL_PRECONDITIONS { addReqKey("universal-preconditions"); }
-    |   ':' QUANTIFIED_PRECONDITIONS { addReqKey("quantified-preconditions"); }
+    |   quantifiedReqs
     |   ':' CONDITIONAL_EFFECTS { addReqKey("conditional-effects"); }
     |   ':' FLUENTS { addReqKey("fluents"); }
+    |   ':' OBJECT_FLUENTS { addReqKey("object-fluents"); }
     |   ':' NUMERIC_FLUENTS { addReqKey("numeric-fluents"); }
     |   ':' ADL { addReqKey("adl"); }
     |   ':' DURATIVE_ACTIONS { addReqKey("durative-actions"); }
@@ -122,6 +121,18 @@ reqKey:
     |   ':' PREFERENCES { addReqKey("preferences"); }
     |   ':' CONSTRAINTS { addReqKey("constraints"); }
     |   ':' ACTION_COSTS { addReqKey("action-costs"); }
+    ;
+
+quantifiedReqs:
+        ':' QUANTIFIED_PRECONDITIONS
+    |   existentialUniversalReqs
+    ;
+
+existentialUniversalReqs:
+        ':' EXISTENTIAL_PRECONDITIONS
+    |   ':' UNIVERSAL_PRECONDITIONS
+    |   existentialUniversalReqs ':' EXISTENTIAL_PRECONDITIONS
+    |   existentialUniversalReqs ':' UNIVERSAL_PRECONDITIONS
     ;
 
 typeDef:

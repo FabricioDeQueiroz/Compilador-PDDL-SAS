@@ -63,6 +63,7 @@ COMMENT         ;[^\n]*
 "quantified-preconditions"                             { return QUANTIFIED_PRECONDITIONS; }
 "conditional-effects"                                  { return CONDITIONAL_EFFECTS; }
 "fluents"                                              { return FLUENTS; }
+"object-fluents"                                       { return OBJECT_FLUENTS; }
 "numeric-fluents"                                      { return NUMERIC_FLUENTS; }
 "adl"                                                  { return ADL; }
 "durative-actions"                                     { return DURATIVE_ACTIONS; }
