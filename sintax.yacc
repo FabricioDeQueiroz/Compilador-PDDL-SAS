@@ -156,7 +156,6 @@ typedNameItem:
 
 typedGroup:
         NameList '-' typeType               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   NameList
     ;
 
 NameList:
@@ -213,7 +212,6 @@ typedVarItem:
 
 typedVarGroup:
         VarList '-' typeType            //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   VarList
     ;
 
 VarList:
@@ -242,7 +240,6 @@ typedFunctionItem:
 
 typedFunctionGroup:
         atomicFunctionList '-' identNumber               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   atomicFunctionList
     ;
 
 identNumber:
