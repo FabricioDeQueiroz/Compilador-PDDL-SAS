@@ -107,7 +107,9 @@ reqKey:
     |   ':' NEGATIVE_PRECONDITIONS { addReqKey("negative-preconditions"); }
     |   ':' DISJUNCTIVE_PRECONDITIONS { addReqKey("disjunctive-preconditions"); }
     |   ':' EQUALITY { addReqKey("equality"); }
-    |   quantifiedReqs
+    |   ':' EXISTENTIAL_PRECONDITIONS
+    |   ':' UNIVERSAL_PRECONDITIONS
+    |   ':' QUANTIFIED_PRECONDITIONS
     |   ':' CONDITIONAL_EFFECTS { addReqKey("conditional-effects"); }
     |   ':' FLUENTS { addReqKey("fluents"); }
     |   ':' OBJECT_FLUENTS { addReqKey("object-fluents"); }
@@ -121,18 +123,6 @@ reqKey:
     |   ':' PREFERENCES { addReqKey("preferences"); }
     |   ':' CONSTRAINTS { addReqKey("constraints"); }
     |   ':' ACTION_COSTS { addReqKey("action-costs"); }
-    ;
-
-quantifiedReqs:
-        ':' QUANTIFIED_PRECONDITIONS
-    |   existentialUniversalReqs
-    ;
-
-existentialUniversalReqs:
-        ':' EXISTENTIAL_PRECONDITIONS
-    |   ':' UNIVERSAL_PRECONDITIONS
-    |   existentialUniversalReqs ':' EXISTENTIAL_PRECONDITIONS
-    |   existentialUniversalReqs ':' UNIVERSAL_PRECONDITIONS
     ;
 
 typeDef:
@@ -156,6 +146,7 @@ typedNameItem:
 
 typedGroup:
         NameList '-' typeType               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   NameList
     ;
 
 NameList:
@@ -212,6 +203,7 @@ typedVarItem:
 
 typedVarGroup:
         VarList '-' typeType            //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   VarList
     ;
 
 VarList:
@@ -240,6 +232,7 @@ typedFunctionItem:
 
 typedFunctionGroup:
         atomicFunctionList '-' identNumber               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   atomicFunctionList
     ;
 
 identNumber:
