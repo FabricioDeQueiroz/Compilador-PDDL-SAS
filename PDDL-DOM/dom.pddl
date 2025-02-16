@@ -1,5 +1,6 @@
 (define (domain fliaswitch)
 	(:requirements :strips)
+	(:types vehicle car truck)  ;; Erro! :types requer :typing
 	(:predicates (switch-is-on) (switch-is-off))
 	(:action switch-on
 		:parameters ()

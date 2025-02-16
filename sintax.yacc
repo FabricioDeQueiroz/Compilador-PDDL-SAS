@@ -14,23 +14,41 @@ void yyerror(const char *s);
 
 extern char *yytext;  // TODO apagar: String do token atual no Flex
 
-#define MAX_REQ_KEYS 1024
-static char *reqKeys[MAX_REQ_KEYS];
-static int reqKeysCount = 0;
+#define MAX_REQ_KEYS 50
+#define MAX_KEY_LENGTH 50
 
-void addReqKey(const char *req) {
-    if (reqKeysCount < MAX_REQ_KEYS) {
-        reqKeys[reqKeysCount++] = strdup(req);
+char reqKeys[MAX_REQ_KEYS][MAX_KEY_LENGTH];
+int reqCount = 0;
+const char* current_filename;
+
+void addReqKey(const char* key) {
+    for (int i = 0; i < reqCount; i++) {
+        if (strcmp(reqKeys[i], key) == 0) {
+            return;
+        }
+    }
+
+    if (reqCount < MAX_REQ_KEYS) {
+        strncpy(reqKeys[reqCount], key, MAX_KEY_LENGTH - 1);
+        reqKeys[reqCount][MAX_KEY_LENGTH - 1] = '\0';
+        reqCount++;
     }
 }
 
-int hasReqKey(const char *req) {
-    int i;
-    for (i = 0; i < reqKeysCount; i++) {
-        if (strcmp(reqKeys[i], req) == 0)
+int hasReqKey(const char* key) {
+    for (int i = 0; i < reqCount; i++) {
+        if (strcmp(reqKeys[i], key) == 0) {
             return 1;
+        }
     }
     return 0;
+}
+
+void checkRequirement(const char* key) {
+    if (!hasReqKey(key)) {
+        printf("Rejected: %s at line %d\n", current_filename, yylineno);
+        return 0;
+    }
 }
 %}
 
@@ -67,10 +85,10 @@ definitions:
 
 definition:
         reqDef
-    |   typeDef
+    |   typeDef             //{ checkRequirement("typing"); }
     |   constDef
     |   predDef
-    |   funcDef
+    |   funcDef             //{ checkRequirement("fluents"); }
     |   structDef
     ;
 
@@ -121,11 +139,12 @@ typedNameItems:
     ;
 
 typedNameItem:
-        typedGroup
+        IDENTIFIER
+    |   typedGroup
     ;
 
 typedGroup:
-        NameList '-' typeType               { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        NameList '-' typeType               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   NameList
     ;
 
@@ -177,11 +196,12 @@ typedVarItems:
     ;
 
 typedVarItem:
-        typedVarGroup
+        VARIABLE
+    |   typedVarGroup
     ;
 
 typedVarGroup:
-        VarList '-' typeType            { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        VarList '-' typeType            //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   VarList
     ;
 
@@ -191,7 +211,7 @@ VarList:
     ;
 
 funcDef:
-        '(' ':' FUNCTIONS functionTypedList ')'         { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        '(' ':' FUNCTIONS functionTypedList ')'         //{ checkRequirement("fluents"); }// { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 functionTypedList:
@@ -205,11 +225,12 @@ typedFunctionItems:
     ;
 
 typedFunctionItem:
-        typedFunctionGroup
+        atomicFormulaSkeleton
+    |   typedFunctionGroup
     ;
 
 typedFunctionGroup:
-        atomicFunctionList '-' identNumber               { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        atomicFunctionList '-' identNumber               //{ checkRequirement("typing"); }// { if (!hasReqKey("typing")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   atomicFunctionList
     ;
 
@@ -225,8 +246,8 @@ atomicFunctionList:
 
 structDef:
         actionDef
-    |   durativeActionDef           { if (!hasReqKey("durative-actions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   derivedDef                  { if (!hasReqKey("derived-predicates")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   durativeActionDef           //{ checkRequirement("durative-actions"); }// { if (!hasReqKey("durative-actions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   derivedDef                  //{ checkRequirement("derived-predicates"); }// { if (!hasReqKey("derived-predicates")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 actionDef:
@@ -246,12 +267,12 @@ goalDef:
         '(' ')'
     |   atomicFormulaTerm
     |   '(' AND goalDef_NList ')'   
-    |   '(' OR goalDef_NList ')'                            { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' NOT goalDef ')'                                 { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' IMPLY goalDef goalDef ')'                       { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' EXISTS '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' FORALL '(' typedListVar ')' goalDef ')'         { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   fComp                                               { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' OR goalDef_NList ')'                            //{ checkRequirement("disjunctive-preconditions"); }// { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' NOT goalDef ')'                                 //{ checkRequirement("disjunctive-preconditions"); }// { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' IMPLY goalDef goalDef ')'                       //{ checkRequirement("disjunctive-preconditions"); }// { if (!hasReqKey("disjunctive-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EXISTS '(' typedListVar ')' goalDef ')'         //{ checkRequirement("existential-preconditions"); }// { if (!hasReqKey("existential-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' FORALL '(' typedListVar ')' goalDef ')'         //{ checkRequirement("universal-preconditions"); }// { if (!hasReqKey("universal-preconditions")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   fComp                                               //{ checkRequirement("fluents"); }// { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 atomicFormulaTerm:
@@ -310,8 +331,8 @@ effect:
     ;
 
 cEffect:
-        '(' FORALL '(' typedListVar ')' effect ')'         { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' WHEN goalDef CondEffect ')'                 { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+        '(' FORALL '(' typedListVar ')' effect ')'         //{ checkRequirement("conditional-effects"); }// { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' WHEN goalDef CondEffect ')'                    //{ checkRequirement("conditional-effects"); }// { if (!hasReqKey("conditional-effects")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     |   pEffect
     ;
 
@@ -328,7 +349,7 @@ CondEffect:
 pEffect:
         '(' NOT atomicFormulaTerm ')'
     |    atomicFormulaTerm
-    |   '(' assignOp fHead fExp ')'                     { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' assignOp fHead fExp ')'                     //{ checkRequirement("fluents"); }// { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 pEffect_NList:
@@ -419,8 +440,8 @@ initEl_NList:
 
 initEl:
         literalName
-    |   '(' EQ fHead NUMBER ')'                { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
-    |   '(' AT identifierNumbers ')'           { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' EQ fHead NUMBER ')'                //{ checkRequirement("fluents"); }// { if (!hasReqKey("fluents")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
+    |   '(' AT identifierNumbers ')'           //{ checkRequirement("timed-initial-literals"); }// { if (!hasReqKey("timed-initial-literals")) { yyerror("Erro"); } } // TODO ver como colocar o arquivo onde ocorreu e a linha
     ;
 
 // TODO gambiarra: pq há exemplos errados no moj
@@ -495,6 +516,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
+    current_filename = argv[1];
+
     if (yyparse() != 0) {
         printf("Rejected: %s at line %d\n", argv[1], yylineno);
         fclose(yyin);
@@ -511,6 +534,8 @@ int main(int argc, char **argv) {
         printf("Erro ao abrir arquivo: %s\n", argv[2]);
         return 1;
     }
+
+    current_filename = argv[2];
 
     if (yyparse() != 0) {
         printf("Rejected: %s at line %d\n", argv[2], yylineno);
@@ -530,5 +555,4 @@ static char *errorMessage;
 
 void yyerror(const char *s) {
     errorMessage = (char *)s;
-    /* printf("Erro na linha %d | TOKEN: %s\n", yylineno, yytext); */
 }
