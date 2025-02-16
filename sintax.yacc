@@ -288,12 +288,12 @@ binaryComp:
 fExp:
         NUMBER
     |   '(' binaryOp fExp fExp ')'
-    |   '(' '-' fExp ')'
     |   fHead
     ;
 
 binaryOp:
         '+'
+    |   '-'
     |   '*'
     |   '/'
     ;
